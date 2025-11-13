@@ -1,0 +1,37 @@
+.topology-runview-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.topology-runview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+}
+
+.topology-runview-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.topology-runview-canvas {
+  flex: 1;
+  min-width: 0;
+}
+
+.topology-runview-side {
+  width: 320px;
+  border-left: 1px solid #e0e0e0;
+  padding: 16px;
+  font-size: 14px;
+  background: #fafafa;
+}
+
+.topology-runview-title {
+  font-weight: 600;
+}

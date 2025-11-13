@@ -1,0 +1,68 @@
+/* 整个运行视图容器 */
+.topology-run-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 顶部 TraceId 输入那一条 */
+.topology-run-header {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.run-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.trace-input-container {
+  display: flex;
+  align-items: center;
+}
+
+/* 中间主区域：左边图 + 右侧信息栏 */
+.topology-run-main {
+  flex: 1;
+  display: flex;
+  min-height: 0; /* 防止子元素溢出 */
+}
+
+/* 左侧 Isoflow 区域 */
+.topology-run-left {
+  flex: 1;
+  min-width: 0;
+  /* 让内部的 Isoflow 填满高度 */
+  display: flex;
+  flex-direction: column;
+}
+
+.topology-run-left > * {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 右侧信息栏 */
+.topology-run-right {
+  width: 280px;
+  border-left: 1px solid #e0e0e0;
+  padding: 16px;
+  box-sizing: border-box;
+  background: #fafafa;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.topology-run-right h3 {
+  margin-top: 0;
+  font-size: 15px;
+}
