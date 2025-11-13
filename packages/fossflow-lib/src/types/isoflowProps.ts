@@ -220,4 +220,6 @@ export interface IsoflowProps {
   renderer?: RendererProps;
   locale?: LocaleProps;
   iconPackManager?: IconPackManagerProps;
+  isRuntime?: boolean;
+  onRuntimeActionEvent?: (data: { item: any; tile: any }) => void;
 }

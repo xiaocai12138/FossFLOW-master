@@ -84,6 +84,9 @@ export const UiOverlay = () => {
   const itemControls = useUiStateStore((state) => {
     return state.itemControls;
   });
+  const isRuntime = useUiStateStore((state) => {
+    return state.isRuntime;
+  });
   const { currentView } = useScene();
   const editorMode = useUiStateStore((state) => {
     return state.editorMode;
@@ -160,7 +163,7 @@ export const UiOverlay = () => {
               left: appPadding.x
             }}
           >
-            <ZoomControls />
+            <ZoomControls isRuntime={isRuntime} />
           </Box>
         )}
 

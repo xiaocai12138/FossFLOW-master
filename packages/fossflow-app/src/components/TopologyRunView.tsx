@@ -81,6 +81,12 @@ export default function TopologyRunView({
     });
   }
 
+  /** 运行模式下点击实体的处理 */
+  function handleRuntimeAction(data: { item: any; tile: any }) {
+    // 点击到实体时显示实体信息
+    alert(`点击到实体：${JSON.stringify(data.item, null, 2)}`);
+  }
+
   return (
     <div className="topology-run-container">
       {/* 顶部：标题 + TraceId 输入 */}
@@ -113,6 +119,8 @@ export default function TopologyRunView({
             initialData={viewData}
             editorMode="EXPLORABLE_READONLY"
             locale={allLocales[localeKey]}
+            isRuntime={true}
+            onRuntimeActionEvent={handleRuntimeAction}
           />
         </div>
 

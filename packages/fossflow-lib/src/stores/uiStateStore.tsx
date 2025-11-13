@@ -39,6 +39,7 @@ const initialState = () => {
       connectorInteractionMode: 'click', // Default to click mode
       expandLabels: false, // Default to collapsed labels
       iconPackManager: null, // Will be set by Isoflow if provided
+      isRuntime: false, // Track if in runtime mode
 
       actions: {
         setView: (view) => {
@@ -119,6 +120,9 @@ const initialState = () => {
         },
         setIconPackManager: (iconPackManager) => {
           set({ iconPackManager });
+        },
+        setIsRuntime: (isRuntime) => {
+          set({ isRuntime });
         }
       }
     };

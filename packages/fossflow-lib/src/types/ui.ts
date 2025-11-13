@@ -39,6 +39,13 @@ export interface CursorMode {
   mousedownItem: ItemReference | null;
 }
 
+export interface RuntimeCursorMode {
+  type: 'RUNTIME CURSOR';
+  showCursor: boolean;
+  ActionEvent: any;
+  mousedownItem: ItemReference | null;
+}
+
 export interface DragItemsMode {
   type: 'DRAG_ITEMS';
   showCursor: boolean;
@@ -122,6 +129,7 @@ export interface FreehandLassoMode {
 export type Mode =
   | InteractionsDisabled
   | CursorMode
+  | RuntimeCursorMode
   | PanMode
   | PlaceIconMode
   | ConnectorMode
@@ -183,7 +191,7 @@ export interface UiState {
   connectorInteractionMode: ConnectorInteractionMode;
   expandLabels: boolean;
   iconPackManager: IconPackManagerProps | null;
-
+  isRuntime: boolean;
 }
 
 export interface UiStateActions {
@@ -210,7 +218,7 @@ export interface UiStateActions {
   setConnectorInteractionMode: (mode: ConnectorInteractionMode) => void;
   setExpandLabels: (expand: boolean) => void;
   setIconPackManager: (iconPackManager: IconPackManagerProps | null) => void;
-
+  setIsRuntime: (isRuntime: boolean) => void;
 }
 
 export type UiStateStore = UiState & {

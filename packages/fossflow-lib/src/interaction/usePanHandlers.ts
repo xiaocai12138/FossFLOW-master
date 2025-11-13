@@ -27,13 +27,22 @@ export const usePanHandlers = () => {
     if (isPanningRef.current) {
       isPanningRef.current = false;
       panMethodRef.current = null;
-      uiState.actions.setMode({
-        type: 'CURSOR',
-        showCursor: true,
-        mousedownItem: null
-      });
+      if (uiState.isRuntime) {
+        uiState.actions.setMode({
+          type: 'RUNTIME CURSOR',
+          showCursor: true,
+          ActionEvent: (window as any).__runtimeActionEvent,
+          mousedownItem: null
+        });
+      } else {
+        uiState.actions.setMode({
+          type: 'CURSOR',
+          showCursor: true,
+          mousedownItem: null
+        });
+      }
     }
-  }, [uiState.actions]);
+  }, [uiState.actions, uiState.isRuntime]);
 
   // Check if click is on empty area
   const isEmptyArea = useCallback((e: SlimMouseEvent): boolean => {
@@ -49,6 +58,11 @@ export const usePanHandlers = () => {
 
   // Enhanced mouse down handler
   const handleMouseDown = useCallback((e: SlimMouseEvent): boolean => {
+    // Disable all pan operations in runtime mode
+    if (uiState.isRuntime) {
+      return false;
+    }
+
     const panSettings = uiState.panSettings;
     
     // Check for the specific button that was pressed and only handle that one
@@ -92,7 +106,7 @@ export const usePanHandlers = () => {
     }
     
     return false;
-  }, [uiState.panSettings, startPan, isEmptyArea]);
+  }, [uiState.panSettings, uiState.isRuntime, startPan, isEmptyArea]);
 
   // Enhanced mouse up handler
   const handleMouseUp = useCallback((e: SlimMouseEvent): boolean => {
@@ -114,6 +128,11 @@ export const usePanHandlers = () => {
         target.contentEditable === 'true' ||
         target.closest('.ql-editor')
       ) {
+        return;
+      }
+
+      // Disable keyboard pan in runtime mode
+      if (uiState.isRuntime) {
         return;
       }
 
@@ -190,7 +209,7 @@ export const usePanHandlers = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [uiState.panSettings, uiState.scroll, uiState.actions]);
+  }, [uiState.panSettings, uiState.scroll, uiState.actions, uiState.isRuntime]);
 
   return {
     handleMouseDown,

@@ -26,6 +26,8 @@ const App = ({
   renderer,
   locale = enUS,
   iconPackManager,
+  isRuntime = false,
+  onRuntimeActionEvent,
 }: IsoflowProps) => {
   const uiStateActions = useUiStateStore((state) => {
     return state.actions;
@@ -71,6 +73,16 @@ const App = ({
   useEffect(() => {
     uiStateActions.setIconPackManager(iconPackManager || null);
   }, [iconPackManager, uiStateActions]);
+
+  useEffect(() => {
+    if (isRuntime && onRuntimeActionEvent) {
+      // 存储 actionEvent 到某个地方供 RuntimeCursor 使用
+      // 这里我们使用 sessionStorage 或 Context，暂时先用一个全局变量存储
+      (window as any).__runtimeActionEvent = onRuntimeActionEvent;
+    }
+    // 设置 isRuntime 状态
+    uiStateActions.setIsRuntime(isRuntime);
+  }, [isRuntime, onRuntimeActionEvent, uiStateActions]);
 
   if (!initialDataManager.isReady) return null;
 

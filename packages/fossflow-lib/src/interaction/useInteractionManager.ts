@@ -10,6 +10,7 @@ import { useHistory } from 'src/hooks/useHistory';
 import { HOTKEY_PROFILES } from 'src/config/hotkeys';
 import { TEXTBOX_DEFAULTS } from 'src/config';
 import { Cursor } from './modes/Cursor';
+import { RuntimeCursor } from './modes/RuntimeCursor';
 import { DragItems } from './modes/DragItems';
 import { DrawRectangle } from './modes/Rectangle/DrawRectangle';
 import { TransformRectangle } from './modes/Rectangle/TransformRectangle';
@@ -23,6 +24,7 @@ import { usePanHandlers } from './usePanHandlers';
 
 const modes: { [k in string]: ModeActions } = {
   CURSOR: Cursor,
+  'RUNTIME CURSOR': RuntimeCursor,
   DRAG_ITEMS: DragItems,
   'RECTANGLE.DRAW': DrawRectangle,
   'RECTANGLE.TRANSFORM': TransformRectangle,
@@ -154,19 +156,30 @@ export const useInteractionManager = () => {
       // Check if key matches any hotkey
       if (hotkeyMapping.select && key === hotkeyMapping.select) {
         e.preventDefault();
-        uiState.actions.setMode({
-          type: 'CURSOR',
-          showCursor: true,
-          mousedownItem: null
-        });
-      } else if (hotkeyMapping.pan && key === hotkeyMapping.pan) {
+        if (uiState.isRuntime) {
+          uiState.actions.setMode({
+            type: 'RUNTIME CURSOR',
+            showCursor: true,
+            ActionEvent: (window as any).__runtimeActionEvent,
+            mousedownItem: null
+          });
+        } else {
+          uiState.actions.setMode({
+            type: 'CURSOR',
+            showCursor: true,
+            mousedownItem: null
+          });
+        }
+      } else if (hotkeyMapping.pan && key === hotkeyMapping.pan && !uiState.isRuntime) {
+        // Disable pan shortcut in runtime mode
         e.preventDefault();
         uiState.actions.setMode({
           type: 'PAN',
           showCursor: false
         });
         uiState.actions.setItemControls(null);
-      } else if (hotkeyMapping.addItem && key === hotkeyMapping.addItem) {
+      } else if (hotkeyMapping.addItem && key === hotkeyMapping.addItem && !uiState.isRuntime) {
+        // Disable add item in runtime mode
         e.preventDefault();
         uiState.actions.setItemControls({
           type: 'ADD_ITEM'
@@ -176,21 +189,24 @@ export const useInteractionManager = () => {
           showCursor: true,
           id: null
         });
-      } else if (hotkeyMapping.rectangle && key === hotkeyMapping.rectangle) {
+      } else if (hotkeyMapping.rectangle && key === hotkeyMapping.rectangle && !uiState.isRuntime) {
+        // Disable rectangle in runtime mode
         e.preventDefault();
         uiState.actions.setMode({
           type: 'RECTANGLE.DRAW',
           showCursor: true,
           id: null
         });
-      } else if (hotkeyMapping.connector && key === hotkeyMapping.connector) {
+      } else if (hotkeyMapping.connector && key === hotkeyMapping.connector && !uiState.isRuntime) {
+        // Disable connector in runtime mode
         e.preventDefault();
         uiState.actions.setMode({
           type: 'CONNECTOR',
           id: null,
           showCursor: true
         });
-      } else if (hotkeyMapping.text && key === hotkeyMapping.text) {
+      } else if (hotkeyMapping.text && key === hotkeyMapping.text && !uiState.isRuntime) {
+        // Disable text in runtime mode
         e.preventDefault();
         const textBoxId = generateId();
         createTextBox({
@@ -203,7 +219,8 @@ export const useInteractionManager = () => {
           showCursor: false,
           id: textBoxId
         });
-      } else if (hotkeyMapping.lasso && key === hotkeyMapping.lasso) {
+      } else if (hotkeyMapping.lasso && key === hotkeyMapping.lasso && !uiState.isRuntime) {
+        // Disable lasso in runtime mode
         e.preventDefault();
         uiState.actions.setMode({
           type: 'LASSO',
@@ -211,7 +228,8 @@ export const useInteractionManager = () => {
           selection: null,
           isDragging: false
         });
-      } else if (hotkeyMapping.freehandLasso && key === hotkeyMapping.freehandLasso) {
+      } else if (hotkeyMapping.freehandLasso && key === hotkeyMapping.freehandLasso && !uiState.isRuntime) {
+        // Disable freehand lasso in runtime mode
         e.preventDefault();
         uiState.actions.setMode({
           type: 'FREEHAND_LASSO',
