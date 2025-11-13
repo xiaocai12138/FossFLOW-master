@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Isoflow, allLocales } from 'fossflow';
 import './TopologyRunView.css';
 
@@ -15,25 +15,33 @@ export default function TopologyRunView({
   localeKey,
   onBackToEditor,
 }: Props) {
-  // 当前运行视图使用的模型
-  const [viewData, setViewData] = useState<any>(baseDiagram);
+  // 当前运行视图使用的模型（初次进入自动全图）
+  const [viewData, setViewData] = useState<any>(() => ({
+    ...baseDiagram,
+    fitToScreen: true,
+  }));
+
   const [traceInput, setTraceInput] = useState('');
 
+  // 当 baseDiagram 变化时重新全图
+  useEffect(() => {
+    setViewData({
+      ...baseDiagram,
+      fitToScreen: true,
+    });
+  }, [baseDiagram]);
+
   /**
-   * 把视图中的连线改成点线：
-   *   diagram.views[*].connectors[*].style = 'DOTTED'
+   * 把所有 connectors 改成点线
    */
   function applyDottedLineStyle(diagram: any) {
     if (!diagram.views) return diagram;
 
     const newViews = (diagram.views || []).map((view: any) => {
-      const newConnectors = (view.connectors || []).map((conn: any) => {
-        // 这里你以后可以按需要过滤，只改某几条线
-        return {
-          ...conn,
-          style: 'DOTTED',      // 对应 UI 里的 LINE STYLE = DOTTED
-        };
-      });
+      const newConnectors = (view.connectors || []).map((conn: any) => ({
+        ...conn,
+        style: 'DOTTED',
+      }));
 
       return {
         ...view,
@@ -56,19 +64,21 @@ export default function TopologyRunView({
 
     console.log('查询 TraceId =', traceInput);
 
-    // 深拷贝 baseDiagram，避免直接改原对象
     let updated = JSON.parse(JSON.stringify(baseDiagram));
 
-    // 将 connectors 里的线改成点线
     updated = applyDottedLineStyle(updated);
 
-    // ✅ 只更新数据，不重建组件，因此视野不会动
+    updated.fitToScreen = false; // 查询时不自动全图
+
     setViewData(updated);
   }
 
   /** 点击【重置】 */
   function onReset() {
-    setViewData(baseDiagram);
+    setViewData({
+      ...baseDiagram,
+      fitToScreen: false,
+    });
   }
 
   return (
@@ -83,17 +93,14 @@ export default function TopologyRunView({
             style={{ width: 220, marginRight: 8 }}
             placeholder="请输入 TraceId..."
             value={traceInput}
-            onChange={e => setTraceInput(e.target.value)}
+            onChange={(e) => setTraceInput(e.target.value)}
           />
           <button onClick={onQuery}>查询</button>
           <button onClick={onReset} style={{ marginLeft: 4 }}>
             重置
           </button>
 
-          <button
-            onClick={onBackToEditor}
-            style={{ marginLeft: 16 }}
-          >
+          <button onClick={onBackToEditor} style={{ marginLeft: 16 }}>
             返回编辑模式
           </button>
         </div>
@@ -104,18 +111,18 @@ export default function TopologyRunView({
         <div className="topology-run-left">
           <Isoflow
             initialData={viewData}
-            editorMode="EDITABLE"          // 保持可操作，也方便以后做交互
+            editorMode="EXPLORABLE_READONLY"
             locale={allLocales[localeKey]}
           />
         </div>
 
         <div className="topology-run-right">
           <h3>详细信息（预留）</h3>
-          <p>这里以后可以显示：</p>
+          <p>这里以后可以展示：</p>
           <ul>
-            <li>当前选中节点的健康状态</li>
-            <li>根据 TraceId 查询到的调用链路详情</li>
-            <li>错误日志 / 告警信息等</li>
+            <li>节点健康状态</li>
+            <li>TraceId 调用链路详情</li>
+            <li>错误日志 / 告警信息</li>
           </ul>
         </div>
       </div>
