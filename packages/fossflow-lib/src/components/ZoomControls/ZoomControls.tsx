@@ -37,7 +37,6 @@ export const ZoomControls: React.FC<ZoomControlsProps> = ({ isRuntime,actionEven
         showCursor: true,
         mousedownItem: null,
       });
-      alert('当前是编辑模式');
     }else{
       // 运行模式，正常进入选择工具
       uiActions.setMode({
@@ -46,7 +45,6 @@ export const ZoomControls: React.FC<ZoomControlsProps> = ({ isRuntime,actionEven
         ActionEvent: actionEvent,
         mousedownItem: null,
       });
-      alert('当前是运行模式');
     }
   };
 
@@ -58,27 +56,6 @@ export const ZoomControls: React.FC<ZoomControlsProps> = ({ isRuntime,actionEven
 
   return (
     <Stack direction="row" spacing={1} alignItems="center">
-
-      {/* ⭐ Select 工具按钮 */}
-      <UiElement>
-        <IconButton
-          name="Select"
-          Icon={<NearMeIcon />}
-          onClick={handleSelectClick}
-          isActive={(isRuntime && mode.type === 'RUNTIME CURSOR') || (!isRuntime && (mode.type === 'CURSOR' || mode.type === 'DRAG_ITEMS'))}
-        />
-      </UiElement>
-
-      {/* ⭐ Pan 工具按钮 */}
-      <UiElement>
-        <IconButton
-          name="Pan"
-          Icon={<PanToolIcon />}
-          onClick={handlePanClick}
-          isActive={!isRuntime && mode.type === 'PAN'}
-          disabled={isRuntime}
-        />
-      </UiElement>
 
       {/* 原有 Zoom 控件 */}
       <UiElement>
@@ -117,6 +94,27 @@ export const ZoomControls: React.FC<ZoomControlsProps> = ({ isRuntime,actionEven
           name="Fit to screen"
           Icon={<FitToScreenIcon />}
           onClick={fitToView}
+        />
+      </UiElement>
+
+      {/* ⭐ Select 工具按钮 */}
+      <UiElement>
+        <IconButton
+          name="Select"
+          Icon={<NearMeIcon />}
+          onClick={handleSelectClick}
+          isActive={(isRuntime && mode.type === 'RUNTIME CURSOR') || (!isRuntime && (mode.type === 'CURSOR' || mode.type === 'DRAG_ITEMS'))}
+        />
+      </UiElement>
+
+      {/* ⭐ Pan 工具按钮 */}
+      <UiElement>
+        <IconButton
+          name="Pan"
+          Icon={<PanToolIcon />}
+          onClick={handlePanClick}
+          isActive={!isRuntime && mode.type === 'PAN'}
+          disabled={isRuntime}
         />
       </UiElement>
 
