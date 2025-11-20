@@ -46,26 +46,23 @@ console.log('复制图标文件夹...', srcIcons, '->', publicIcons);
 const copyRes = copyDir(srcIcons, publicIcons);
 console.log(`已复制 ${copyRes.files} 个文件 （${copyRes.dirs} 个子目录）`);
 
-// 2) update icons-index.json in public
-let indexArr = [];
-const existingIndex = loadJson(publicIndexFile);
-if (Array.isArray(existingIndex)) indexArr = existingIndex;
-else {
-  // try to find index file in srcIcons and copy it over
-  const srcIndex = path.join(srcIcons, 'icons-index.json');
-  const srcIndexObj = loadJson(srcIndex);
-  if (Array.isArray(srcIndexObj)) {
-    indexArr = srcIndexObj;
-    console.log('使用根目录的 icons-index.json 作为初始索引');
-  }
+// 2) Regenerate icons-index.json completely from scratch
+console.log('正在重新生成 icons-index.json...');
+
+// backup old index if exists
+if (fs.existsSync(publicIndexFile)) {
+  const timestamp = Date.now();
+  fs.copyFileSync(publicIndexFile, `${publicIndexFile}.bak.${timestamp}`);
+  console.log(`已备份旧索引: ${publicIndexFile}.bak.${timestamp}`);
 }
 
-const existingIds = new Set(indexArr.map(i => i.id));
-const existingPaths = new Set(indexArr.map(i => i.path));
+let indexArr = [];
+const existingIds = new Set();
+const existingPaths = new Set();
 
-// scan publicIcons subfolders for svg files and add missing entries
+// scan publicIcons subfolders for svg files and generate index
 const entries = fs.readdirSync(publicIcons, { withFileTypes: true });
-let added = 0;
+let total = 0;
 for (const e of entries) {
   if (!e.isDirectory()) continue;
   const folder = e.name;
@@ -73,7 +70,6 @@ for (const e of entries) {
   const files = fs.readdirSync(folderPath).filter(f => f.toLowerCase().endsWith('.svg'));
   for (const f of files) {
     const relPath = `${folder}/${f}`;
-    if (existingPaths.has(relPath)) continue;
     const base = path.basename(f, '.svg');
     let id = base;
     if (existingIds.has(id)) id = `${folder}-${base}`;
@@ -93,17 +89,11 @@ for (const e of entries) {
     indexArr.push(entry);
     existingIds.add(id);
     existingPaths.add(relPath);
-    added += 1;
+    total += 1;
   }
 }
 
-if (added > 0) {
-  // backup old index if exists
-  if (fs.existsSync(publicIndexFile)) fs.copyFileSync(publicIndexFile, publicIndexFile + '.bak');
-  writeJson(publicIndexFile, indexArr);
-  console.log(`已追加 ${added} 条索引到 ${publicIndexFile}（备份: ${publicIndexFile}.bak）`);
-} else {
-  console.log('未发现需要追加的索引条目。');
-}
-
+// write new index
+writeJson(publicIndexFile, indexArr);
+console.log(`已重新生成 ${publicIndexFile}，共包含 ${total} 条索引条目。`);
 console.log('同步完成。请重载前端以查看更改。');
