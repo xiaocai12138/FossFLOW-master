@@ -1,19 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Isoflow, allLocales } from 'fossflow';
-import { flattenCollections } from '@isoflow/isopacks/dist/utils';
-import isoflowIsopack from '@isoflow/isopacks/dist/isoflow';
 import { useTranslation } from 'react-i18next';
 import { DiagramData } from './diagramUtils';
 import { StorageManager } from './StorageManager';
 import { DiagramManager } from './components/DiagramManager';
 import { storageManager } from './services/storageService';
 import ChangeLanguage from './components/ChangeLanguage';
-import { useIconPackManager } from './services/iconPackManager';
+import { useIconPackManager } from './services/iconPackManagerV2';
 import TopologyRunView, { AppMode } from './components/TopologyRunView'; // ⭐ 新增运行视图组件
 import './App.css';
-
-// Load core isoflow icons (always loaded)
-const coreIcons = flattenCollections([isoflowIsopack]);
 
 interface SavedDiagram {
   id: string;
@@ -24,8 +19,10 @@ interface SavedDiagram {
 }
 
 function App() {
-  // Initialize icon pack manager with core icons
-  const iconPackManager = useIconPackManager(coreIcons);
+  // Initialize icon pack manager (loads icons from file system)
+  const iconPackManager = useIconPackManager();
+  const iconSource = (iconPackManager as any).iconSource as 'filesystem' | 'npm';
+  const setIconSource = (iconPackManager as any).setIconSource as (s: 'filesystem' | 'npm') => void;
 
   const [diagrams, setDiagrams] = useState<SavedDiagram[]>([]);
   const [currentDiagram, setCurrentDiagram] = useState<SavedDiagram | null>(null);
@@ -63,10 +60,9 @@ function App() {
       try {
         const data = JSON.parse(lastOpenedData);
         const importedIcons = (data.icons || []).filter((icon: any) => icon.collection === 'imported');
-        const mergedIcons = [...coreIcons, ...importedIcons];
         return {
           ...data,
-          icons: mergedIcons,
+          icons: importedIcons, // Will be merged with file system icons later
           colors: data.colors?.length ? data.colors : defaultColors,
           fitToScreen: data.fitToScreen !== false
         };
@@ -78,7 +74,7 @@ function App() {
     // Default state if no saved data
     return {
       title: 'Untitled Diagram',
-      icons: coreIcons,
+      icons: [],
       colors: defaultColors,
       items: [],
       views: [],
@@ -554,6 +550,25 @@ function App() {
             </button>
 
             <ChangeLanguage />
+
+            {/* 图标来源切换 */}
+            <label style={{ marginLeft: 12, display: 'inline-flex', alignItems: 'center' }}>
+              <span style={{ marginRight: 8, fontSize: 12, color: '#333' }}>图标来源</span>
+              <select
+                value={iconSource}
+                onChange={e => {
+                  setIconSource(e.target.value as any);
+                  // Clear caches in loader so change takes effect on next load
+                  // eslint-disable-next-line @typescript-eslint/no-var-requires
+                  try { require('./services/iconFileSystemLoader').clearIconCache(); } catch (err) {}
+                  // force reload enabled packs
+                  iconPackManager.loadAllPacks();
+                }}
+              >
+                <option value="filesystem">本地 (filesystem)</option>
+                <option value="npm">NPM 包</option>
+              </select>
+            </label>
 
             <span className="current-diagram">
               {currentDiagram

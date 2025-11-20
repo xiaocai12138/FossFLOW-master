@@ -16,7 +16,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "prestart": "node ../../scripts/sync-icons-to-public.js || true",
     "start": "rsbuild dev",
+    "prebuild": "node ../../scripts/sync-icons-to-public.js || true",
     "build": "rsbuild build",
     "preview": "rsbuild preview",
     "clean": "rm -rf build"

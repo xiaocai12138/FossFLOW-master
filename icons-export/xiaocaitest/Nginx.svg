@@ -1,0 +1,42 @@
+<!--?xml version="1.0" encoding="utf-8"?-->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="573.5px" height="570.4px" viewBox="0 0 573.5 570.4">
+
+  <style>
+    .shadow{opacity:0.25;fill:#000000;}
+    .n-stroke{
+      stroke:#078330;
+      stroke-width:20;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      fill:none;
+    }
+    .text{
+      fill:#078330;
+      font-weight:600;
+      letter-spacing:4px;
+    }
+  </style>
+
+  <!-- 中心缩放到 1.50 倍 -->
+  <g transform="
+      translate(286.75,300)
+      scale(1.50)
+      translate(-286.75,-300)
+    ">
+
+    <!-- 阴影 -->
+    <ellipse class="shadow" cx="286.75" cy="390" rx="150" ry="25"></ellipse>
+
+    <!-- N -->
+    <g transform="translate(286.75,246) scale(1.7,1.6) skewX(-15)">
+      <path class="n-stroke" d="M -30 30 L -30 -30 L 30 30 L 30 -30"></path>
+    </g>
+
+    <!-- NGINX -->
+    <text x="286.75" y="360" text-anchor="middle" class="text" font-size="55" font-family="Arial, sans-serif">
+      NGINX
+    </text>
+
+  </g>
+
+</svg>
