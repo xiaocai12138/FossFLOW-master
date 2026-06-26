@@ -1,6 +1,6 @@
 {
     "nav": {
-        "newDiagram": "New Diagram",
+        "newDiagram": "新图标",
         "saveSessionOnly": "Save (Session Only)",
         "loadSessionOnly": "Load (Session Only)",
         "importFile": "Import File",
@@ -10,13 +10,13 @@
     },
     "status": {
         "current": "Current",
-        "untitled": "Untitled Diagram",
+        "untitled": "未命名图表",
         "modified": "Modified",
         "sessionStorageNote": "Session storage only - export to save permanently"
     },
     "dialog": {
         "save": {
-            "title": "Save Diagram (Current Session Only)",
+            "title": "保存图表 (仅保存当前会话)",
             "warningTitle": "Important",
             "warningMessage": "This save is temporary and will be lost when you close the browser.",
             "warningExport": "Use <strong>Export File</strong> to permanently save your work.",

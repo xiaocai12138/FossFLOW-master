@@ -35,7 +35,12 @@ export function extractSavableData(fullData: DiagramData): DiagramData {
     // Only include non-empty arrays
     icons: fullData.icons || [],
     colors: fullData.colors || [],
-    items: fullData.items || [],
+    items: (fullData.items || []).map((it: any) => {
+      if (it && typeof it === 'object') {
+        return { ...it, tag: typeof it.tag === 'string' ? it.tag : '' };
+      }
+      return it;
+    }),
     views: fullData.views || [],
     fitToScreen: fullData.fitToScreen !== false
   };

@@ -116,25 +116,31 @@ export const UiOverlay = () => {
           left: 0
         }}
       >
-        {availableTools.includes('ITEM_CONTROLS') && itemControls && (
-          <UiElement
-            sx={{
-              position: 'absolute',
-              width: '360px',
-              overflowY: 'scroll',
-              '&::-webkit-scrollbar': {
-                display: 'none'
-              }
-            }}
-            style={{
-              left: appPadding.x,
-              top: appPadding.y * 2 + spacing(2),
-              maxHeight: rendererSize.height - appPadding.y * 6
-            }}
-          >
-            <ItemControlsManager />
-          </UiElement>
-        )}
+        {availableTools.includes('ITEM_CONTROLS') &&
+          itemControls &&
+          itemControls.type === 'ITEM' && <ItemControlsManager />}
+
+        {availableTools.includes('ITEM_CONTROLS') &&
+          itemControls &&
+          itemControls.type !== 'ITEM' && (
+            <UiElement
+              sx={{
+                position: 'absolute',
+                width: '360px',
+                overflowY: 'scroll',
+                '&::-webkit-scrollbar': {
+                  display: 'none'
+                }
+              }}
+              style={{
+                left: appPadding.x,
+                top: appPadding.y * 2 + spacing(2),
+                maxHeight: rendererSize.height - appPadding.y * 6
+              }}
+            >
+              <ItemControlsManager />
+            </UiElement>
+          )}
 
         {availableTools.includes('TOOL_MENU') && (
           <Box

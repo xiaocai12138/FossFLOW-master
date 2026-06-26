@@ -40,7 +40,7 @@ export const PlaceIcon: ModeActions = {
         scene.placeIcon({
           modelItem: {
             id: modelItemId,
-            name: 'Untitled',
+            name: '未命名',
             icon: uiState.mode.id
           },
           viewItem: {

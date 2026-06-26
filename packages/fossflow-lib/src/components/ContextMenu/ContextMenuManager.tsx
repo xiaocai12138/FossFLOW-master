@@ -45,7 +45,7 @@ export const ContextMenuManager = ({ anchorEl }: Props) => {
         )}
         menuItems={[
           {
-            label: 'Add Node',
+            label: '添加节点',
             onClick: () => {
               if (model.icons.length > 0) {
                 const modelItemId = generateId();
@@ -57,7 +57,7 @@ export const ContextMenuManager = ({ anchorEl }: Props) => {
                 scene.placeIcon({
                   modelItem: {
                     id: modelItemId,
-                    name: 'Untitled',
+                    name: '未命名',
                     icon: firstIcon.id
                   },
                   viewItem: {
@@ -71,7 +71,7 @@ export const ContextMenuManager = ({ anchorEl }: Props) => {
             }
           },
           {
-            label: 'Add Rectangle',
+            label: '添加区域',
             onClick: () => {
               if (model.colors.length > 0) {
                 scene.createRectangle({

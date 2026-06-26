@@ -1,207 +1,282 @@
-# FossFLOW - Isometric Diagramming Tool <img width="30" height="30" alt="fossflow" src="https://github.com/user-attachments/assets/56d78887-601c-4336-ab87-76f8ee4cde96" />
+# FossFLOW 项目接手说明
 
-<p align="center">
- <a href="README.md">English</a> | <a href="docs/README.cn.md">简体中文</a> | <a href="docs/README.es.md">Español</a> | <a href="docs/README.pt.md">Português</a> | <a href="docs/README.fr.md">Français</a> | <a href="docs/README.hi.md">हिन्दी</a> | <a href="docs/README.bn.md">বাংলা</a> | <a href="docs/README.ru.md">Русский</a>
-</p>
+这个仓库是一个用于绘制等距风格拓扑图/架构图的前端项目，当前采用 `monorepo` 结构，包含：
 
-<b>Hey!</b> Stan here, if you've used FossFLOW and it's helped you, <b>I'd really appreciate if you could donate something small :)</b> I work full time, and finding the time to work on this project is challenging enough.
-If you've had a feature that I've implemented for you, or fixed a bug it'd be great if you could :) if not, that's not a problem, this software will always remain free!
+- 一个可复用的图形编辑器组件库 `fossflow-lib`
+- 一个面向最终用户的应用壳 `fossflow-app`
+- 一个可选的文件存储后端 `fossflow-backend`
 
+这份 README 不是面向开源用户的宣传文档，而是我们后续继续改造这个项目时使用的内部接手说明。
 
-<b>Also!</b> If you haven't yet, please check out the underlying library this is built on by <a href="https://github.com/markmanx/isoflow">@markmanx</a> I truly stand on the shoulders of a giant here 🫡
+## 1. 项目概览
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/P5P61KBXA3)
+### 当前能力
 
-<a href="https://www.buymeacoffee.com/stan.smith" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+- 在画布上拖拽图标并生成等距拓扑图
+- 节点、连接线、文本框、矩形区域等基础建模能力
+- 多语言支持
+- 本地存储与可选服务端存储
+- 图标包加载与自定义图标导入
+- 运行视图 / 只读探索模式
 
-Thanks,
+### 当前技术栈
 
--Stan
+- `React 18`
+- `TypeScript`
+- `RSBuild`：应用层开发与打包
+- `Webpack`：底层图形库打包
+- `Zustand`：状态管理
+- `MUI` + `emotion`
+- `Express`：可选后端
 
-## Try it online
+## 2. 仓库结构
 
-Go to  <b> --> https://stan-smith.github.io/FossFLOW/ <-- </b>
-
-
-------------------------------------------------------------------------------------------------------------------------------
-FossFLOW is a powerful, open-source Progressive Web App (PWA) for creating beautiful isometric diagrams. Built with React and the <a href="https://github.com/markmanx/isoflow">Isoflow</a> (Now forked and published to NPM as fossflow) library, it runs entirely in your browser with offline support.
-
-![Screenshot_20250630_160954](https://github.com/user-attachments/assets/e7f254ad-625f-4b8a-8efc-5293b5be9d55)
-
-- **📝 [FOSSFLOW_TODO.md](https://github.com/stan-smith/FossFLOW/blob/master/FOSSFLOW_TODO.md)** - Current issues and roadmap with codebase mappings, most gripes are with the isoflow library itself.
-- **🤝 [CONTRIBUTORS.md](https://github.com/stan-smith/FossFLOW/blob/master/CONTRIBUTORS.md)** - How to contribute to the project.
-
-## Recent Updates (October 2025)
-
-### Performance updates
- - **Reduced frame refresh delay, should look much smoother now**
-
-### Multilingual Support
-- **8 Languages Supported** - Full interface translation in English, Chinese (Simplified), Spanish, Portuguese (Brazilian), French, Hindi, Bengali, and Russian
-- **Language Selector** - Easy-to-use language switcher in the app header
-- **Complete Translation** - All menus, dialogs, settings, tooltips, and help content translated
-- **Locale-Aware** - Automatically detects and remembers your language preference
-
-### Improved Connector Tool
-- **Click-based Creation** - New default mode: click first node, then second node to connect
-- **Drag Mode Option** - Original drag-and-drop still available via settings
-- **Mode Selection** - Switch between click and drag modes in Settings → Connectors tab
-- **Better Reliability** - Click mode provides more predictable connection creation
-
-### Custom Icon Import
-- **Import Your Own Icons** - Upload custom icons (PNG, JPG, SVG) to use in your diagrams
-- **Automatic Scaling** - Icons are automatically scaled to consistent sizes for professional appearance
-- **Isometric/Flat Toggle** - Choose whether imported icons appear as 3D isometric or flat 2D
-- **Smart Persistence** - Custom icons are saved with diagrams and work across all storage methods
-- **Icon Resources** - Find free icons at:
-  - [Iconify Icon Sets](https://icon-sets.iconify.design/) - Thousands of free SVG icons
-  - [Flaticon Isometric Icons](https://www.flaticon.com/free-icons/isometric) - High-quality isometric icon packs
-
-### Server Storage Support
-- **Persistent Storage** - Diagrams saved to server filesystem, persist across browser sessions
-- **Multi-device Access** - Access your diagrams from any device when using Docker deployment
-- **Automatic Detection** - UI automatically shows server storage when available
-- **Overwrite Protection** - Confirmation dialog when saving with duplicate names
-- **Docker Integration** - Server storage enabled by default in Docker deployments
-
-### Enhanced Interaction Features
-- **Configurable Hotkeys** - Three profiles (QWERTY, SMNRCT, None) for tool selection with visual indicators
-- **Advanced Pan Controls** - Multiple pan methods including empty area drag, middle/right click, modifier keys (Ctrl/Alt), and keyboard navigation (Arrow/WASD/IJKL)
-- **Toggle Connector Arrows** - Option to show/hide arrows on individual connectors
-- **Persistent Tool Selection** - Connector tool remains active after creating connections
-- **Settings Dialog** - Centralized configuration for hotkeys and pan controls
-
-### Docker & CI/CD Improvements
-- **Automated Docker Builds** - GitHub Actions workflow for automatic Docker Hub deployment on commits
-- **Multi-architecture Support** - Docker images for both `linux/amd64` and `linux/arm64`
-- **Pre-built Images** - Available at `stnsmith/fossflow:latest`
-
-### Monorepo Architecture
-- **Single repository** for both library and application
-- **NPM Workspaces** for streamlined dependency management
-- **Unified build process** with `npm run build` at the root
-
-### UI Fixes
-- Fixed Quill editor toolbar icons display issue
-- Resolved React key warnings in context menus
-- Improved markdown editor styling
-
-## Features
-
-- 🎨 **Isometric Diagramming** - Create stunning 3D-style technical diagrams
-- 💾 **Auto-Save** - Your work is automatically saved every 5 seconds
-- 📱 **PWA Support** - Install as a native app on Mac and Linux
-- 🔒 **Privacy-First** - All data stored locally in your browser
-- 📤 **Import/Export** - Share diagrams as JSON files
-- 🎯 **Session Storage** - Quick save without dialogs
-- 🌐 **Offline Support** - Work without internet connection
-- 🗄️ **Server Storage** - Optional persistent storage when using Docker (enabled by default)
-- 🌍 **Multilingual** - Full support for 8 languages: English, 简体中文, Español, Português, Français, हिन्दी, বাংলা, Русский
-
-
-## 🐳 Quick Deploy with Docker
-
-```bash
-# Using Docker Compose (recommended - includes persistent storage)
-docker compose up
-
-# Or run directly from Docker Hub with persistent storage
-docker run -p 80:80 -v $(pwd)/diagrams:/data/diagrams stnsmith/fossflow:latest
+```text
+FossFLOW-master/
+├─ packages/
+│  ├─ fossflow-app/        # 最终运行的前端应用
+│  ├─ fossflow-lib/        # 画图核心库
+│  └─ fossflow-backend/    # 可选后端，提供图文件持久化接口
+├─ icons-export/           # 图标资源导出目录
+├─ scripts/                # 图标同步、版本等脚本
+├─ docs/                   # 原项目多语言文档
+├─ e2e-tests/              # 端到端测试
+├─ .env.example
+└─ package.json
 ```
 
-Server storage is enabled by default in Docker. Your diagrams will be saved to `./diagrams` on the host.
+## 3. 包职责说明
 
-To disable server storage, set `ENABLE_SERVER_STORAGE=false`:
+### `packages/fossflow-app`
+
+这是我们日常最常接触的应用层。
+
+主要职责：
+
+- 组织页面与应用状态
+- 管理图纸保存、加载、导出
+- 管理图标包来源
+- 切换编辑态 / 运行态
+- 接入底层 `Isoflow` 组件
+
+关键入口文件：
+
+- [App.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/App.tsx)
+- [index.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/index.tsx)
+- [storageService.ts](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/services/storageService.ts)
+- [iconPackManagerV2.ts](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/services/iconPackManagerV2.ts)
+- [DiagramManager.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/components/DiagramManager.tsx)
+- [TopologyRunView.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/components/TopologyRunView.tsx)
+
+### `packages/fossflow-lib`
+
+这是项目的核心编辑器引擎，负责真正的图元渲染、交互和状态变更。
+
+主要职责：
+
+- 渲染画布、节点、连接线、标签、文本框、矩形
+- 管理交互模式，如拖拽、框选、连接、放置图标
+- 维护 editor store / scene store / ui store
+- 暴露 `Isoflow` 组件给应用层使用
+
+关键入口文件：
+
+- [Isoflow.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-lib/src/Isoflow.tsx)
+- [index.ts](D:/Code/JS/FossFLOW-master/packages/fossflow-lib/src/index.ts)
+- [config.ts](D:/Code/JS/FossFLOW-master/packages/fossflow-lib/src/config.ts)
+- [modelStore.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-lib/src/stores/modelStore.tsx)
+- [uiStateStore.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-lib/src/stores/uiStateStore.tsx)
+- [Renderer.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-lib/src/components/Renderer/Renderer.tsx)
+
+### `packages/fossflow-backend`
+
+这是一个可选后端，不参与画图逻辑，只负责图数据的服务端持久化。
+
+主要职责：
+
+- 提供存储状态探测接口
+- 列出图纸
+- 读取图纸
+- 保存图纸
+- 删除图纸
+
+关键入口文件：
+
+- [server.js](D:/Code/JS/FossFLOW-master/packages/fossflow-backend/server.js)
+
+## 4. 本地启动方式
+
+### 环境要求
+
+- `Node.js >= 18`
+- `npm >= 9`
+
+### 安装依赖
+
 ```bash
-docker run -p 80:80 -e ENABLE_SERVER_STORAGE=false stnsmith/fossflow:latest
-```
-
-## Quick Start (Local Development)
-
-```bash
-# Clone the repository
-git clone https://github.com/stan-smith/FossFLOW
-cd FossFLOW
-
-# Install dependencies
 npm install
+```
 
-# Build the library (required first time)
-npm run build:lib
+### 启动前端开发环境
 
-# Start development server
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+默认访问地址：
 
-## Monorepo Structure
+- [http://localhost:3000](http://localhost:3000)
 
-This is a monorepo containing two packages:
-
-- `packages/fossflow-lib` - React component library for drawing network diagrams (built with Webpack)
-- `packages/fossflow-app` - Progressive Web App for creating isometric diagrams (built with RSBuild)
-
-### Development Commands
+### 启动后端开发环境
 
 ```bash
-# Development
-npm run dev          # Start app development server
-npm run dev:lib      # Watch mode for library development
-
-# Building
-npm run build        # Build both library and app
-npm run build:lib    # Build library only
-npm run build:app    # Build app only
-
-# Testing & Linting
-npm test             # Run unit tests
-npm run lint         # Check for linting errors
-
-# E2E Tests (Selenium)
-cd e2e-tests
-./run-tests.sh       # Run end-to-end tests (requires Docker & Python)
-
-# Publishing
-npm run publish:lib  # Publish library to npm
+npm run dev:backend
 ```
 
-## How to Use
+默认接口地址：
 
-### Creating Diagrams
+- [http://localhost:3001/api/storage/status](http://localhost:3001/api/storage/status)
 
-1. **Add Items**:
-   - Press the "+" button on the top right menu, the library of components will appear on the left
-   - Drag and drop components from the library onto the canvas
-   - Or right-click on the grid and select "Add node"
+### 构建命令
 
-2. **Connect Items**: 
-   - Select the Connector tool (press 'C' or click connector icon)
-   - **Click mode** (default): Click first node, then click second node
-   - **Drag mode** (optional): Click and drag from first to second node
-   - Switch modes in Settings → Connectors tab
+```bash
+npm run build:lib
+npm run build:app
+npm run build
+```
 
-3. **Save Your Work**:
-   - **Quick Save** - Saves to browser session
-   - **Export** - Download as JSON file
-   - **Import** - Load from JSON file
+## 5. 存储机制
 
-### Storage Options
+应用层有两套存储逻辑：
 
-- **Session Storage**: Temporary saves cleared when browser closes
-- **Export/Import**: Permanent storage as JSON files
-- **Auto-Save**: Automatically saves changes every 5 seconds to session
+1. 服务端存储
+2. 浏览器端存储
 
-## Contributing
+代码入口在 [storageService.ts](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/services/storageService.ts)。
 
-We welcome contributions! Please see [CONTRIBUTORS.md](CONTRIBUTORS.md) for guidelines.
+当前策略是：
 
-## Documentation
+- 前端先探测 `/api/storage/status`
+- 如果服务端可用，则读写后端接口
+- 如果服务端不可用，则退回浏览器侧存储
 
-- [FOSSFLOW_ENCYCLOPEDIA.md](FOSSFLOW_ENCYCLOPEDIA.md) - Comprehensive guide to the codebase
-- [FOSSFLOW_TODO.md](FOSSFLOW_TODO.md) - Current issues and roadmap
-- [CONTRIBUTORS.md](CONTRIBUTORS.md) - Contributing guidelines
+后端配置参考 [.env.example](D:/Code/JS/FossFLOW-master/.env.example)：
 
-## License
+```env
+ENABLE_SERVER_STORAGE=true
+ENABLE_GIT_BACKUP=false
+STORAGE_PATH=/data/diagrams
+BACKEND_PORT=3001
+```
 
-MIT
+## 6. 代码阅读建议
+
+如果我们后续要继续改造，建议按下面顺序看代码：
+
+1. 先看 [App.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/App.tsx)
+2. 再看 [Isoflow.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-lib/src/Isoflow.tsx)
+3. 再看 `stores`、`interaction`、`components/Renderer`
+4. 最后看应用层的图标、存储、运行视图扩展
+
+这样能先理解“应用层怎么包库”，再理解“库内部如何驱动画布行为”。
+
+## 7. 当前代码特征与注意事项
+
+### 1. 应用层和底层库耦合度较高
+
+`fossflow-app` 并不是非常轻的壳层，里面已经加入了图标同步、运行视图、存储切换等业务逻辑。后续如果我们要做平台化改造，可能需要继续拆边界。
+
+### 2. 存在自定义扩展痕迹
+
+从当前代码可以看到，仓库已经不完全是原版开源项目，至少增加了：
+
+- 图标包管理增强
+- `TopologyRunView` 运行态视图
+- 服务端存储增强
+- 一些节点控制与快捷操作改造
+
+后续做功能梳理时，需要先区分：
+
+- 原项目能力
+- 当前仓库新增能力
+- 我们下一步准备新增的能力
+
+### 3. 存在编码/文案异常
+
+部分文件里能看到中文乱码或特殊字符异常，后续改造时需要重点关注编码一致性，尤其是：
+
+- [README.md](D:/Code/JS/FossFLOW-master/README.md)
+- [App.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/App.tsx)
+- [TopologyRunView.tsx](D:/Code/JS/FossFLOW-master/packages/fossflow-app/src/components/TopologyRunView.tsx)
+- [config.ts](D:/Code/JS/FossFLOW-master/packages/fossflow-lib/src/config.ts)
+- [server.js](D:/Code/JS/FossFLOW-master/packages/fossflow-backend/server.js)
+
+### 4. 根目录当前不是干净工作区
+
+仓库目前已经有未提交改动。后续我们在继续开发前，建议先确认：
+
+- 哪些是已有在制改动
+- 哪些是我们新增改动
+- 是否需要单独开分支做下一阶段改造
+
+## 8. 后续改造建议
+
+从接手角度看，建议优先处理以下几件事：
+
+### 第一阶段：整理与稳定
+
+- 梳理现有功能边界
+- 修复乱码和文案编码问题
+- 补充一版统一的中英文命名规范
+- 明确前端状态模型与图数据结构
+
+### 第二阶段：做代码边界拆分
+
+- 将应用层业务逻辑和底层编辑器能力分离清楚
+- 将图标系统、存储系统、运行态能力拆成独立模块
+- 减少 `App.tsx` 中的聚合逻辑
+
+### 第三阶段：做业务化改造
+
+- 接入我们的领域模型
+- 接入我们自己的图元规范和图标体系
+- 接入真实查询接口与运行态联动
+- 统一保存、导入导出、版本兼容策略
+
+## 9. 常用命令
+
+```bash
+npm run dev
+npm run dev:backend
+npm run dev:lib
+npm run build
+npm run build:lib
+npm run build:app
+npm run lint
+npm test
+```
+
+## 10. 我们接下来建议怎么推进
+
+建议下一步直接产出一份更具体的“改造清单”，至少覆盖：
+
+- 现有模块拆分图
+- 需要保留的能力
+- 需要替换的能力
+- 需要新增的能力
+- 改造优先级与分期计划
+
+如果后续继续在这个仓库上开发，这份 README 可以作为总入口，再补充：
+
+- `docs/architecture.md`
+- `docs/refactor-plan.md`
+- `docs/data-model.md`
+- `docs/icon-system.md`
+
+---
+
+维护说明：
+
+- 当前 README 由接手分析后重写
+- 目标是服务后续内部开发，而不是对外发布
+- 如架构或目录发生变化，请优先更新本文件

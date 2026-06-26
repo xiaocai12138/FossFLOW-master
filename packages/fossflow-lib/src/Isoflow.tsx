@@ -26,6 +26,7 @@ const App = ({
   renderer,
   locale = enUS,
   iconPackManager,
+  customMainMenu,
   isRuntime = false,
   onRuntimeActionEvent,
 }: IsoflowProps) => {
@@ -73,6 +74,10 @@ const App = ({
   useEffect(() => {
     uiStateActions.setIconPackManager(iconPackManager || null);
   }, [iconPackManager, uiStateActions]);
+
+  useEffect(() => {
+    uiStateActions.setCustomMainMenu(customMainMenu || null);
+  }, [customMainMenu, uiStateActions]);
 
   useEffect(() => {
     if (isRuntime && onRuntimeActionEvent) {

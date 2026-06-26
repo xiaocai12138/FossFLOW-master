@@ -82,7 +82,7 @@ if (STORAGE_ENABLED) {
             const data = JSON.parse(content);
 
             // Extract name from various possible locations
-            const name = data.name || data.title || 'Untitled Diagram';
+            const name = data.name || data.title || '未命名 图表';
 
             console.log(`Successfully read diagram: ${file} (name: ${name})`);
 

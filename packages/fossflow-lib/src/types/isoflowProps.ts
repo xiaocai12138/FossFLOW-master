@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { EditorModeEnum, MainMenuOptions } from './common';
 import type { Model } from './model';
 import type { RendererProps } from './rendererProps';
@@ -209,6 +210,25 @@ export interface IconPackManagerProps {
   onTogglePack: (packName: string, enabled: boolean) => void;
 }
 
+export interface CustomMainMenuAction {
+  id: string;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  tone?: 'default' | 'primary' | 'success' | 'accent';
+}
+
+export interface CustomMainMenuConfig {
+  actions: CustomMainMenuAction[];
+  languageControl?: ReactNode;
+  iconSourceControl?: ReactNode;
+  status?: {
+    title: string;
+    meta: string;
+    note?: string;
+  };
+}
+
 export interface IsoflowProps {
   initialData?: InitialData;
   mainMenuOptions?: MainMenuOptions;
@@ -220,6 +240,7 @@ export interface IsoflowProps {
   renderer?: RendererProps;
   locale?: LocaleProps;
   iconPackManager?: IconPackManagerProps;
+  customMainMenu?: CustomMainMenuConfig | null;
   isRuntime?: boolean;
   onRuntimeActionEvent?: (data: { item: any; tile: any }) => void;
 }

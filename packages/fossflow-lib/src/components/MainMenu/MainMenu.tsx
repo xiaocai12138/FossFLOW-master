@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Menu, Typography, Divider, Card } from '@mui/material';
+import { Menu, Typography, Divider, Card, Box, Button } from '@mui/material';
 import {
   Menu as MenuIcon,
   GitHub as GitHubIcon,
@@ -41,6 +41,9 @@ export const MainMenu = () => {
   });
   const uiStateActions = useUiStateStore((state) => {
     return state.actions;
+  });
+  const customMainMenu = useUiStateStore((state) => {
+    return state.customMainMenu;
   });
   const initialDataManager = useInitialDataManager();
   const { undo, redo, canUndo, canRedo, clearHistory } = useHistory();
@@ -149,13 +152,49 @@ export const MainMenu = () => {
           return opt.includes('LINK');
         })
       ),
-      version: Boolean(mainMenuOptions.includes('VERSION'))
+      version: Boolean(mainMenuOptions.includes('VERSION')),
+      custom: Boolean(
+        customMainMenu &&
+          (customMainMenu.actions.length > 0 ||
+            customMainMenu.languageControl ||
+            customMainMenu.iconSourceControl ||
+            customMainMenu.status)
+      )
     };
-  }, [mainMenuOptions]);
+  }, [customMainMenu, mainMenuOptions]);
 
-  if (mainMenuOptions.length === 0) {
+  if (mainMenuOptions.length === 0 && !sectionVisibility.custom) {
     return null;
   }
+
+  const getActionStyles = (tone?: 'default' | 'primary' | 'success' | 'accent') => {
+    switch (tone) {
+      case 'primary':
+        return {
+          backgroundColor: '#eff6ff',
+          borderColor: 'rgba(59, 130, 246, 0.24)',
+          color: '#1d4ed8'
+        };
+      case 'success':
+        return {
+          backgroundColor: '#ecfdf5',
+          borderColor: 'rgba(16, 185, 129, 0.22)',
+          color: '#047857'
+        };
+      case 'accent':
+        return {
+          backgroundColor: '#f0f9ff',
+          borderColor: 'rgba(14, 165, 233, 0.24)',
+          color: '#0369a1'
+        };
+      default:
+        return {
+          backgroundColor: '#ffffff',
+          borderColor: 'rgba(18, 18, 18, 0.08)',
+          color: '#111827'
+        };
+    }
+  };
 
   return (
     <UiElement>
@@ -233,6 +272,95 @@ export const MainMenu = () => {
             <MenuItem onClick={onClearCanvas} Icon={<DeleteOutlineIcon />}>
               {t('clearCanvas')}
             </MenuItem>
+          )}
+
+          {sectionVisibility.custom && (
+            <>
+              <Divider />
+              <Box sx={{ px: 1.5, py: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {customMainMenu?.actions.map((action) => (
+                  <Button
+                    key={action.id}
+                    fullWidth
+                    variant="outlined"
+                    disabled={action.disabled}
+                    onClick={() => {
+                      action.onClick();
+                      uiStateActions.setIsMainMenuOpen(false);
+                    }}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      px: 1.5,
+                      py: 1,
+                      fontSize: 14,
+                      fontWeight: 500,
+                      ...getActionStyles(action.tone)
+                    }}
+                  >
+                    {action.label}
+                  </Button>
+                ))}
+
+                {customMainMenu?.languageControl && (
+                  <Box sx={{ pt: 0.5 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        fontWeight: 700,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      Language
+                    </Typography>
+                    <Box sx={{ mt: 0.75 }}>{customMainMenu.languageControl}</Box>
+                  </Box>
+                )}
+
+                {customMainMenu?.iconSourceControl && (
+                  <Box sx={{ pt: 0.5 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        fontWeight: 700,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      Icon Source
+                    </Typography>
+                    <Box sx={{ mt: 0.75 }}>{customMainMenu.iconSourceControl}</Box>
+                  </Box>
+                )}
+
+                {customMainMenu?.status && (
+                  <Box
+                    sx={{
+                      mt: 0.5,
+                      p: 1.25,
+                      borderRadius: 2,
+                      backgroundColor: '#f8fafc'
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#111827' }}>
+                      {customMainMenu.status.title}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 600, color: '#f59e0b' }}>
+                      {customMainMenu.status.meta}
+                    </Typography>
+                    {customMainMenu.status.note && (
+                      <Typography variant="caption" sx={{ mt: 0.5, display: 'block', color: '#64748b' }}>
+                        {customMainMenu.status.note}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Box>
+            </>
           )}
 
           <Divider />

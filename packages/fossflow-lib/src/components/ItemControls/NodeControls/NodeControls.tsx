@@ -19,6 +19,7 @@ import { QuickIconSelector } from './QuickIconSelector';
 
 interface Props {
   id: string;
+  showCloseButton?: boolean;
 }
 
 const ModeOptions = {
@@ -28,7 +29,7 @@ const ModeOptions = {
 
 type Mode = keyof typeof ModeOptions;
 
-export const NodeControls = ({ id }: Props) => {
+export const NodeControls = ({ id, showCloseButton = true }: Props) => {
   const [mode, setMode] = useState<Mode>('SETTINGS');
   const { updateModelItem, updateViewItem, deleteViewItem } = useScene();
   const uiStateActions = useUiStateStore((state) => {
@@ -71,21 +72,23 @@ export const NodeControls = ({ id }: Props) => {
         }}
       >
         {/* Close button */}
-        <MUIIconButton
-          aria-label="Close"
-          onClick={() => {
-            return uiStateActions.setItemControls(null);
-          }}
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            zIndex: 2
-          }}
-          size="small"
-        >
-          <CloseIcon />
-        </MUIIconButton>
+        {showCloseButton && (
+          <MUIIconButton
+            aria-label="Close"
+            onClick={() => {
+              return uiStateActions.setItemControls(null);
+            }}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              zIndex: 2
+            }}
+            size="small"
+          >
+            <CloseIcon />
+          </MUIIconButton>
+        )}
         <Section sx={{ py: 2 }}>
           <Stack
             direction="row"
@@ -106,7 +109,7 @@ export const NodeControls = ({ id }: Props) => {
                 }}
                 variant="text"
               >
-                Update icon
+                更新图标
               </Button>
             )}
             {mode === 'CHANGE_ICON' && (
@@ -117,7 +120,7 @@ export const NodeControls = ({ id }: Props) => {
                 }}
                 variant="text"
               >
-                Settings
+                设置
               </Button>
             )}
           </Stack>

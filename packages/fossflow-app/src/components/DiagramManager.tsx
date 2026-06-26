@@ -181,7 +181,7 @@ export const DiagramManager: React.FC<Props> = ({
           <button 
             className="action-button primary"
             onClick={() => {
-              setSaveName(currentDiagramData?.name || 'Untitled Diagram');
+              setSaveName(currentDiagramData?.name || '未命名 图表');
               setShowSaveDialog(true);
             }}
           >

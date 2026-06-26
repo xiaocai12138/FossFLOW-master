@@ -10,7 +10,7 @@
     },
     "status": {
         "current": "Current",
-        "untitled": "Untitled Diagram",
+        "untitled": "未命名",
         "modified": "Modified",
         "sessionStorageNote": "Session storage only - export to save permanently"
     },

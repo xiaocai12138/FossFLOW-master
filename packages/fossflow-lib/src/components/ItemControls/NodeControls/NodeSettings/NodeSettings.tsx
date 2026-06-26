@@ -12,9 +12,13 @@ export type NodeUpdates = {
   view: Partial<ViewItem>;
 };
 
+type ModelItemUpdates = Partial<ModelItem> & {
+  tag?: string;
+};
+
 interface Props {
   node: ViewItem;
-  onModelItemUpdated: (updates: Partial<ModelItem>) => void;
+  onModelItemUpdated: (updates: ModelItemUpdates) => void;
   onViewItemUpdated: (updates: Partial<ViewItem>) => void;
   onDeleted: () => void;
 }
@@ -84,6 +88,16 @@ export const NodeSettings = ({
             const text = e.target.value as string;
             if (modelItem.name !== text) onModelItemUpdated({ name: text });
           }}
+        />
+      </Section>
+      <Section title="Tag">
+        <TextField
+          value={(modelItem as any).tag || ''}
+          onChange={(e) => {
+            const text = e.target.value as string;
+            if ((modelItem as any).tag !== text) onModelItemUpdated({ tag: text });
+          }}
+          placeholder="任意标签字符串"
         />
       </Section>
       <Section title="Description">

@@ -63,7 +63,7 @@ export const transformToCompactFormat = (model: Model) => {
   });
 
   return {
-    t: title?.substring(0, 40) || 'Untitled',
+    t: title?.substring(0, 40) || '未命名',
     i: compactItems,
     v: compactViews,
     _: { f: 'compact', v: '1.0' }

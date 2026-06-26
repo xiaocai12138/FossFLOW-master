@@ -68,6 +68,15 @@ export const useInitialDataManager = () => {
 
       // Clean up invalid connector references before loading
       const initialData = { ..._initialData };
+      // Ensure every item has a `tag` field (string) to keep model consistent
+      if (Array.isArray(initialData.items)) {
+        initialData.items = initialData.items.map((it: any) => {
+          if (it && typeof it === 'object') {
+            return { ...it, tag: typeof it.tag === 'string' ? it.tag : '' };
+          }
+          return it;
+        });
+      }
       initialData.views = initialData.views.map(view => {
         if (!view.connectors) return view;
 

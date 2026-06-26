@@ -146,7 +146,7 @@ export const QuickIconSelector = ({ onIconSelected, onClose, currentIconId }: Pr
           <TextField
             ref={searchInputRef}
             fullWidth
-            placeholder="Search icons (press Enter to select)"
+            placeholder="搜索图标（按 Enter 键选择）"
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -167,7 +167,7 @@ export const QuickIconSelector = ({ onIconSelected, onClose, currentIconId }: Pr
           {!searchTerm && recentIcons.length > 0 && (
             <>
               <Typography variant="caption" color="text.secondary">
-                RECENTLY USED
+                最近使用
               </Typography>
               <IconGrid
                 icons={recentIcons}
@@ -224,8 +224,8 @@ export const QuickIconSelector = ({ onIconSelected, onClose, currentIconId }: Pr
       <Section sx={{ py: 1 }}>
         <Typography variant="caption" color="text.secondary">
           {searchTerm 
-            ? 'Use arrow keys to navigate • Enter to select • Double-click to select and close'
-            : 'Type to search • Click category to expand • Double-click to select and close'
+            ? '使用方向键导航 • 按 Enter 选择 • 双击选择并关闭'
+            : '输入文字进行搜索 • 点击分类展开 • 双击选择并关闭'
           }
         </Typography>
       </Section>

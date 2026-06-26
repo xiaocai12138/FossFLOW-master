@@ -178,7 +178,7 @@ class SessionStorage implements StorageService {
     const existing = list.findIndex(d => d.id === id);
     const info: DiagramInfo = {
       id,
-      name: (data as any).name || 'Untitled Diagram',
+      name: (data as any).name || '未命名 图表',
       lastModified: new Date(),
       size: JSON.stringify(data).length
     };
