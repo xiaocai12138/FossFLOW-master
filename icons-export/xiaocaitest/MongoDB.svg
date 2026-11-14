@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+	 width="160px" height="130px" viewBox="0 0 160 130" xml:space="preserve">
+<g id="Layer_1">
+	<path fill="#3f9332" stroke="#010202" stroke-width="0.5" stroke-linejoin="round"
+		d="M28,30 L28,88
+		A52,19 0 0 0 132,88
+		L132,30
+		A52,19 0 0 1 28,30 Z"/>
+	<ellipse cx="80" cy="88" rx="52" ry="19" fill="#2e6b25" stroke="#010202" stroke-width="0.5"/>
+	<ellipse cx="80" cy="30" rx="52" ry="19" fill="#5bd348" stroke="#010202" stroke-width="0.5"/>
+	<ellipse cx="80" cy="30" rx="31.2" ry="11.4" fill="none" stroke="#010202" stroke-width="0.5" opacity="0.5"/>
+	<rect x="58" y="58" width="44" height="6" rx="3" fill="#ffffff" opacity="0.6"/>
+	<rect x="58" y="70" width="28" height="6" rx="3" fill="#ffffff" opacity="0.4"/>
+
+</g>
+</svg>

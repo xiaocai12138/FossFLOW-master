@@ -5,13 +5,9 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
-  Slider,
-  IconButton as MUIIconButton
+  Slider
 } from '@mui/material';
-import {
-  TextRotationNone as TextRotationNoneIcon,
-  Close as CloseIcon
-} from '@mui/icons-material';
+import { TextRotationNone as TextRotationNoneIcon } from '@mui/icons-material';
 import { useTextBox } from 'src/hooks/useTextBox';
 import { useUiStateStore } from 'src/stores/uiStateStore';
 import { getIsoProjectionCss } from 'src/utils';
@@ -38,23 +34,7 @@ export const TextBoxControls = ({ id }: Props) => {
 
   return (
     <ControlsContainer>
-      <Box sx={{ position: 'relative', paddingTop: '24px' }}>
-        {/* Close button */}
-        <MUIIconButton
-          aria-label="Close"
-          onClick={() => {
-            return uiStateActions.setItemControls(null);
-          }}
-          sx={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            zIndex: 2
-          }}
-          size="small"
-        >
-          <CloseIcon />
-        </MUIIconButton>
+      <Box sx={{ position: 'relative' }}>
         <Section title="Enter text">
           <TextField
             value={textBox.content}

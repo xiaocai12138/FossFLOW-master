@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Isoflow, allLocales } from 'fossflow';
 import { useTranslation } from 'react-i18next';
-import TopologyRunView, { AppMode } from '../components/TopologyRunView';
 import { DiagramManager } from '../components/DiagramManager';
 import EditorSessionDialogs from '../components/EditorSessionDialogs';
 import ChangeLanguage from '../components/ChangeLanguage';
 import { StorageManager } from '../StorageManager';
 import { storageManager } from '../services/storageService';
+import { supportedLanguages } from '../i18n';
 import { useIconPackManager } from '../services/iconPackManagerV2';
+import { sanitizeDiagram } from '../services/diagramSanitizer';
+import { ROUTES, RUNTIME_SEARCH_PARAMS } from '../routes';
 import { DiagramData } from '../diagramUtils';
 import { SavedDiagram } from '../types/editor';
 import '../App.css';
@@ -35,8 +38,8 @@ export default function EditorWorkspace() {
   const [fossflowKey, setFossflowKey] = useState(0);
   const [currentModel, setCurrentModel] = useState<DiagramData | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [appMode, setAppMode] = useState<AppMode>('EDITOR');
 
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation('app');
 
   const defaultColors = useMemo(
@@ -52,19 +55,21 @@ export default function EditorWorkspace() {
     []
   );
 
+  /**
+   * Cached data is kept as-is here on purpose: pack icons load over HTTP, so
+   * repairing icon references at this point would strip them permanently.
+   * `sanitizedDiagramData` repairs the shape later, once icons are available.
+   */
   const [diagramData, setDiagramData] = useState<DiagramData>(() => {
     const lastOpenedData = localStorage.getItem('fossflow-last-opened-data');
 
     if (lastOpenedData) {
       try {
         const data = JSON.parse(lastOpenedData);
-        const importedIcons = (data.icons || []).filter(
-          (icon: any) => icon.collection === 'imported'
-        );
 
         return {
           ...data,
-          icons: importedIcons,
+          icons: data.icons || [],
           colors: data.colors?.length ? data.colors : defaultColors,
           fitToScreen: data.fitToScreen !== false
         };
@@ -83,6 +88,32 @@ export default function EditorWorkspace() {
     };
   });
 
+  /**
+   * Cached diagrams go through several save paths that trim icons and can leave
+   * dangling references, malformed colours or over-long names behind. Repair
+   * the shape instead of failing model validation and blanking the canvas.
+   */
+  const sanitizedDiagramData = useMemo<DiagramData>(() => {
+    const withIcons = {
+      ...diagramData,
+      icons: [
+        ...(diagramData.icons ?? []),
+        ...(iconPackManager.loadedIcons.length > 0
+          ? iconPackManager.loadedIcons.filter(
+              (icon) => !(diagramData.icons ?? []).some((own) => own.id === icon.id)
+            )
+          : [])
+      ]
+    };
+    const { data, changes } = sanitizeDiagram(withIcons);
+
+    if (changes.length > 0) {
+      console.warn('[fossflow] repaired diagram before loading', changes);
+    }
+
+    return data as DiagramData;
+  }, [diagramData, iconPackManager.loadedIcons]);
+
   useEffect(() => {
     storageManager
       .initialize()
@@ -93,13 +124,25 @@ export default function EditorWorkspace() {
   }, []);
 
   useEffect(() => {
-    setDiagramData((previous) => ({
-      ...previous,
-      icons: [
-        ...iconPackManager.loadedIcons,
-        ...(previous.icons || []).filter((icon) => icon.collection === 'imported')
-      ]
-    }));
+    const loadedIcons = iconPackManager.loadedIcons;
+
+    if (loadedIcons.length === 0) return;
+
+    setDiagramData((previous) => {
+      const byId = new Map<string, any>();
+
+      // Existing icons win only for ids the packs do not provide, so persisted
+      // custom icons survive while pack icons stay current.
+      (previous.icons || []).forEach((icon) => byId.set(icon.id, icon));
+      loadedIcons.forEach((icon) => byId.set(icon.id, icon));
+
+      const merged = Array.from(byId.values());
+      const unchanged =
+        merged.length === (previous.icons || []).length &&
+        merged.every((icon, index) => icon === (previous.icons || [])[index]);
+
+      return unchanged ? previous : { ...previous, icons: merged };
+    });
   }, [iconPackManager.loadedIcons]);
 
   useEffect(() => {
@@ -469,9 +512,28 @@ export default function EditorWorkspace() {
   const handleCloseExportDialog = () => setShowExportDialog(false);
   const handleCloseDiagramManager = () => setShowDiagramManager(false);
   const handleOpenRunView = () => {
-    setDiagramData(currentModel || diagramData);
-    setAppMode('RUNTIME');
+    const target = currentModel || diagramData;
+
+    setDiagramData(target);
+
+    try {
+      localStorage.setItem('fossflow-last-opened-data', JSON.stringify(target));
+
+      if (currentDiagram?.id) {
+        localStorage.setItem('fossflow-last-opened', currentDiagram.id);
+      }
+    } catch (error) {
+      console.error('Failed to persist diagram before entering runtime view:', error);
+    }
+
+    // 运行视图是独立路由，携带当前图表 id 以便直接恢复
+    const search = currentDiagram
+      ? `?${RUNTIME_SEARCH_PARAMS.diagramId}=${encodeURIComponent(currentDiagram.id)}`
+      : '';
+
+    navigate(`${ROUTES.runtime}${search}`);
   };
+
   const handleQuickSaveSession = () => {
     if (currentDiagram && hasUnsavedChanges) {
       handleSaveDiagram();
@@ -500,26 +562,33 @@ export default function EditorWorkspace() {
     onTogglePack: iconPackManager.togglePack
   };
 
-  if (appMode === 'RUNTIME') {
-    return (
-      <TopologyRunView
-        baseDiagram={currentModel || diagramData}
-        localeKey={i18n.language as keyof typeof allLocales}
-        onBackToEditor={() => setAppMode('EDITOR')}
-      />
-    );
-  }
+  /** 设置弹窗内的语言切换：同步 i18next 与页面语言状态 */
+  const handleLanguageChange = (lang: string) => {
+    if (i18n.language === lang) return;
+
+    i18n.changeLanguage(lang);
+    localStorage.setItem('i18nextLng', lang);
+    // 使画布层的 allLocales 立即跟随切换
+    setFossflowKey((previous) => previous + 1);
+  };
 
   return (
     <div className="App">
       <div className="fossflow-container">
-        <Isoflow
-          key={fossflowKey}
-          initialData={diagramData}
-          onModelUpdated={handleModelUpdated}
-          editorMode="EDITABLE"
-          locale={allLocales[i18n.language as keyof typeof allLocales]}
-          iconPackManager={iconPackManagerProps}
+        {!iconPackManager.isInitialLoadComplete && (
+          <div className="fossflow-loading">正在加载图标资源…</div>
+        )}
+        {iconPackManager.isInitialLoadComplete && (
+          <Isoflow
+            key={fossflowKey}
+            initialData={sanitizedDiagramData}
+            onModelUpdated={handleModelUpdated}
+            editorMode="EDITABLE"
+            locale={allLocales[i18n.language as keyof typeof allLocales]}
+            iconPackManager={iconPackManagerProps}
+            language={i18n.language}
+            supportedLanguages={supportedLanguages}
+            onLanguageChange={handleLanguageChange}
           customMainMenu={{
             actions: [
               {
@@ -588,6 +657,7 @@ export default function EditorWorkspace() {
             }
           }}
         />
+        )}
       </div>
 
       <EditorSessionDialogs

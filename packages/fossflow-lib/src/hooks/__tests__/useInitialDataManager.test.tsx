@@ -373,7 +373,9 @@ describe('useInitialDataManager - Orphaned Connector Handling', () => {
       result.current.load(initialData);
     });
 
-    expect(window.alert).toHaveBeenCalledWith('There is an error in your model.');
+    expect(window.alert).toHaveBeenCalledWith(
+      expect.stringContaining('There is an error in your model.')
+    );
     expect(mockModelStore.actions.set).not.toHaveBeenCalled();
     expect(result.current.isReady).toBe(false);
   });

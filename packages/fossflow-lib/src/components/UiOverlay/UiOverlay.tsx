@@ -103,6 +103,15 @@ export const UiOverlay = () => {
   const iconPackManager = useUiStateStore((state) => {
     return state.iconPackManager;
   });
+  const language = useUiStateStore((state) => {
+    return state.language;
+  });
+  const supportedLanguages = useUiStateStore((state) => {
+    return state.supportedLanguages;
+  });
+  const onLanguageChange = useUiStateStore((state) => {
+    return state.onLanguageChange;
+  });
   const { size: rendererSize } = useResizeObserver(rendererEl);
 
   return (
@@ -116,31 +125,9 @@ export const UiOverlay = () => {
           left: 0
         }}
       >
-        {availableTools.includes('ITEM_CONTROLS') &&
-          itemControls &&
-          itemControls.type === 'ITEM' && <ItemControlsManager />}
-
-        {availableTools.includes('ITEM_CONTROLS') &&
-          itemControls &&
-          itemControls.type !== 'ITEM' && (
-            <UiElement
-              sx={{
-                position: 'absolute',
-                width: '360px',
-                overflowY: 'scroll',
-                '&::-webkit-scrollbar': {
-                  display: 'none'
-                }
-              }}
-              style={{
-                left: appPadding.x,
-                top: appPadding.y * 2 + spacing(2),
-                maxHeight: rendererSize.height - appPadding.y * 6
-              }}
-            >
-              <ItemControlsManager />
-            </UiElement>
-          )}
+        {availableTools.includes('ITEM_CONTROLS') && itemControls && (
+          <ItemControlsManager />
+        )}
 
         {availableTools.includes('TOOL_MENU') && (
           <Box
@@ -258,7 +245,14 @@ export const UiOverlay = () => {
 
       {dialog === DialogTypeEnum.HELP && <HelpDialog />}
 
-      {dialog === DialogTypeEnum.SETTINGS && <SettingsDialog iconPackManager={iconPackManager || undefined} />}
+      {dialog === DialogTypeEnum.SETTINGS && (
+        <SettingsDialog
+          iconPackManager={iconPackManager || undefined}
+          language={language ?? undefined}
+          supportedLanguages={supportedLanguages ?? undefined}
+          onLanguageChange={onLanguageChange ?? undefined}
+        />
+      )}
 
       {/* Show hint tooltips only in editable mode */}
       {editorMode === EditorModeEnum.EDITABLE && <ConnectorHintTooltip toolMenuRef={toolMenuRef} />}

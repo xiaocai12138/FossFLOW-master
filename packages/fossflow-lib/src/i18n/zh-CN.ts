@@ -113,6 +113,7 @@ const locale: LocaleProps = {
   },
   settings: {
     zoom: {
+      title: "缩放设置",
       description: "配置使用鼠标滚轮时的缩放行为。",
       zoomToCursor: "光标缩放",
       zoomToCursorDesc: "启用时，以鼠标光标位置为中心进行缩放。禁用时，以画布中心进行缩放。"
@@ -174,6 +175,35 @@ const locale: LocaleProps = {
       iconCount: "{count} 个图标",
       lazyLoadingDisabledNote: "延迟加载已禁用。所有图标包将在启动时加载。",
       note: "可以根据需要启用或禁用图标包。禁用的图标包将减少内存使用并提高性能。"
+    },
+    language: {
+      title: "界面语言",
+      description: "选择界面显示语言，切换后立即生效。",
+      zhCN: "简体中文",
+      enUS: "English"
+    },
+    iconManagement: {
+      title: "图标管理",
+      importTitle: "导入图标",
+      importDesc: "选择 SVG 文件导入到当前图表，支持多选。",
+      selectFiles: "选择文件",
+      listTitle: "图标列表",
+      searchPlaceholder: "搜索图标名称",
+      empty: "暂无图标",
+      inspectorTitle: "图标详情",
+      name: "名称",
+      scale: "缩放",
+      isometric: "等距图标",
+      source: "SVG 源码",
+      sourceUnsupported: "该图标不是 SVG 格式，无法编辑源码。",
+      apply: "应用修改",
+      copy: "复制源码",
+      download: "下载 SVG",
+      delete: "删除图标",
+      applied: "已应用",
+      invalidSvg: "SVG 源码无效，请检查语法。",
+      preview: "预览",
+      selectHint: "从左侧列表中选择一个图标"
     }
   },
   lazyLoadingWelcome: {

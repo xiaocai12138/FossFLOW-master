@@ -29,6 +29,10 @@ const App = ({
   customMainMenu,
   isRuntime = false,
   onRuntimeActionEvent,
+  runtimeOverlay = null,
+  language,
+  supportedLanguages,
+  onLanguageChange,
 }: IsoflowProps) => {
   const uiStateActions = useUiStateStore((state) => {
     return state.actions;
@@ -88,6 +92,21 @@ const App = ({
     // 设置 isRuntime 状态
     uiStateActions.setIsRuntime(isRuntime);
   }, [isRuntime, onRuntimeActionEvent, uiStateActions]);
+
+  useEffect(() => {
+    uiStateActions.setRuntimeOverlay(runtimeOverlay ?? null);
+  }, [runtimeOverlay, uiStateActions]);
+
+  useEffect(() => {
+    uiStateActions.setLanguage(language ?? null);
+    uiStateActions.setSupportedLanguages(supportedLanguages ?? null);
+    uiStateActions.setOnLanguageChange(onLanguageChange ?? null);
+  }, [
+    language,
+    onLanguageChange,
+    supportedLanguages,
+    uiStateActions
+  ]);
 
   if (!initialDataManager.isReady) return null;
 

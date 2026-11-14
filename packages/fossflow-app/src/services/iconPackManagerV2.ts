@@ -9,8 +9,8 @@ export type IconSource = 'filesystem' | 'npm';
 
 export const loadIconSourcePreference = (): IconSource => {
   const stored = localStorage.getItem(ICON_SOURCE_KEY);
-  // 默认使用 npm 源，以便用户可以在设置中切换到本地文件
-  return (stored as IconSource) || 'npm';
+  // 默认使用本地 icons-export 目录，避免把图标 base64 打进 bundle
+  return (stored as IconSource) || 'filesystem';
 };
 
 export const saveIconSourcePreference = (src: IconSource): void => {
@@ -46,6 +46,17 @@ const PACK_METADATA: Record<string, string> = {
   gcp: 'Google Cloud Icons',
   azure: 'Azure Icons',
   kubernetes: 'Kubernetes Icons'
+};
+
+const NPM_PACK_LOADERS: Record<
+  string,
+  () => Promise<{ default?: unknown } & Record<string, unknown>>
+> = {
+  isoflow: () => import('@isoflow/isopacks/dist/isoflow'),
+  aws: () => import('@isoflow/isopacks/dist/aws'),
+  gcp: () => import('@isoflow/isopacks/dist/gcp'),
+  azure: () => import('@isoflow/isopacks/dist/azure'),
+  kubernetes: () => import('@isoflow/isopacks/dist/kubernetes')
 };
 
 // Load preferences from localStorage
@@ -119,6 +130,19 @@ export const useIconPackManager = () => {
           };
         });
         setPackInfo(info);
+
+        // First run: enable every icon pack discovered in the local index so a
+        // freshly added pack shows up without manual toggling.
+        if (localStorage.getItem(ENABLED_PACKS_KEY) === null) {
+          const discovered = categories.filter((cat) => Boolean(cat));
+          const ordered = [
+            'isoflow',
+            ...discovered.filter((cat) => cat !== 'isoflow')
+          ];
+
+          setEnabledPacks(ordered);
+          saveEnabledPacks(ordered);
+        }
       } catch (e) {
         console.error('Failed to populate icon pack info from index:', e);
       }
@@ -128,6 +152,9 @@ export const useIconPackManager = () => {
 
   const [loadedIcons, setLoadedIcons] = useState<Icon[]>([]);
   const [loadedPackData, setLoadedPackData] = useState<Record<string, Icon[]>>({} as Record<string, Icon[]>);
+  // Icons load over HTTP, so the diagram must not mount until they are ready,
+  // otherwise model validation fails on icon references that are not there yet.
+  const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
 
   // Load a specific pack from file system
   const loadPack = useCallback(async (packName: IconPackName) => {
@@ -144,16 +171,29 @@ export const useIconPackManager = () => {
 
     try {
       const source = loadIconSourcePreference();
+      const localCategories = await fileSystemLoader.loadIconIndex()
+        .then((index) => new Set(index.map((entry) => entry.category)))
+        .catch(() => new Set<string>());
+      const hasLocalPack = localCategories.has(packName);
 
-      if (source === 'npm') {
+      // 本地优先：只有本地没有该分类时才回退到 NPM 内联包
+      if (source === 'npm' || !hasLocalPack) {
         // Try loading from NPM package as a fallback
         try {
           // dynamic import the pack from @isoflow/isopacks
           // pack module exports collections that flattenCollections can handle
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const packModule = await import(`@isoflow/isopacks/dist/${packName}`);
-          const packDefault = packModule?.default || packModule;
-          const flattened = flattenCollections([packDefault]);
+          const loader = NPM_PACK_LOADERS[packName];
+
+          if (!loader) {
+            throw new Error(`Unknown icon pack: ${packName}`);
+          }
+
+          const packModule = await loader();
+          const packDefault =
+            (packModule as { default?: unknown }).default ?? packModule;
+          const flattened = flattenCollections([
+            packDefault as Parameters<typeof flattenCollections>[0][number]
+          ]);
           // Map to Icon interface
           const icons: Icon[] = flattened.map((it: any) => ({
             id: it.id,
@@ -331,16 +371,21 @@ export const useIconPackManager = () => {
   // Initialize: Load enabled packs or all packs depending on lazy loading setting
   useEffect(() => {
     const initialize = async () => {
-      if (!lazyLoadingEnabled) {
-        // Load all packs immediately
-        await loadAllPacks();
-      } else {
-        // Load only enabled packs
-        for (const pack of enabledPacks) {
-          if (!packInfo[pack]?.loaded && !packInfo[pack]?.loading) {
-            await loadPack(pack);
+      try {
+        if (!lazyLoadingEnabled) {
+          // Load all packs immediately
+          await loadAllPacks();
+        } else {
+          // Load only enabled packs
+          for (const pack of enabledPacks) {
+            if (!packInfo[pack]?.loaded && !packInfo[pack]?.loading) {
+              await loadPack(pack);
+            }
           }
         }
+      } finally {
+        // Always release the gate, even when a pack fails to load.
+        setIsInitialLoadComplete(true);
       }
     };
     initialize();
@@ -351,6 +396,7 @@ export const useIconPackManager = () => {
     enabledPacks,
     packInfo,
     loadedIcons,
+    isInitialLoadComplete,
     togglePack,
     toggleLazyLoading,
     loadAllPacks,

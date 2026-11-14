@@ -11,6 +11,8 @@ import { ViewItem } from 'src/types';
 import { useModelItem } from 'src/hooks/useModelItem';
 import { ExpandableLabel } from 'src/components/Label/ExpandableLabel';
 import { MarkdownEditor } from 'src/components/MarkdownEditor/MarkdownEditor';
+import { useUiStateStore } from 'src/stores/uiStateStore';
+import { RuntimeNodeBadge } from 'src/components/RuntimeOverlay/RuntimeNodeBadge';
 
 interface Props {
   node: ViewItem;
@@ -20,6 +22,17 @@ interface Props {
 export const Node = memo(({ node, order }: Props) => {
   const modelItem = useModelItem(node.id);
   const { iconComponent } = useIcon(modelItem?.icon);
+
+  const runtimeOverlay = useUiStateStore((state) => {
+    return state.runtimeOverlay;
+  });
+
+  const runtimeStatus = runtimeOverlay?.nodeStates[node.id];
+  const showHealth = Boolean(runtimeOverlay) && runtimeOverlay?.showHealth !== false;
+  const isRuntimeDimmed = runtimeOverlay
+    ? runtimeOverlay.dimmedItemIds.includes(node.id)
+    : false;
+  const isRuntimeFocused = runtimeOverlay?.focusedItemId === node.id;
 
   const position = useMemo(() => {
     return getTilePosition({
@@ -58,7 +71,7 @@ export const Node = memo(({ node, order }: Props) => {
           top: position.y
         }}
       >
-        {(modelItem?.name || description) && (
+        {(modelItem?.name || description || (showHealth && runtimeStatus)) && (
           <Box
             sx={{ position: 'absolute' }}
             style={{ bottom: PROJECTED_TILE_SIZE.height / 2 }}
@@ -69,8 +82,25 @@ export const Node = memo(({ node, order }: Props) => {
               labelHeight={node.labelHeight ?? DEFAULT_LABEL_HEIGHT}
             >
               <Stack spacing={1}>
-                {modelItem.name && (
-                  <Typography fontWeight={600}>{modelItem.name}</Typography>
+                {(modelItem.name || (showHealth && runtimeStatus)) && (
+                  <Stack
+                    direction="row"
+                    spacing={0.75}
+                    alignItems="center"
+                    justifyContent="center"
+                    flexWrap="wrap"
+                  >
+                    {modelItem.name && (
+                      <Typography fontWeight={600}>{modelItem.name}</Typography>
+                    )}
+                    {showHealth && runtimeStatus && (
+                      <RuntimeNodeBadge
+                        status={runtimeStatus}
+                        isFocused={Boolean(isRuntimeFocused)}
+                        label={runtimeOverlay?.statusLabels?.[runtimeStatus]}
+                      />
+                    )}
+                  </Stack>
                 )}
                 {modelItem.description &&
                   modelItem.description !== MARKDOWN_EMPTY_VALUE && (
@@ -84,7 +114,9 @@ export const Node = memo(({ node, order }: Props) => {
           <Box
             sx={{
               position: 'absolute',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
+              opacity: isRuntimeDimmed ? 0.35 : 1,
+              transition: 'opacity 220ms ease'
             }}
           >
             {iconComponent}

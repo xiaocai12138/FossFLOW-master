@@ -59,10 +59,23 @@ export const useInitialDataManager = () => {
       const validationResult = modelSchema.safeParse(_initialData);
 
       if (!validationResult.success) {
-        // TODO: let's get better at reporting error messages here (starting with how we present them to users)
-        // - not in console but in a modal
-        console.log(validationResult.error.errors);
-        window.alert('There is an error in your model.');
+        const details = validationResult.error.errors
+          .slice(0, 5)
+          .map((issue) => {
+            const path = Array.isArray(issue.path) ? issue.path.join('.') : '';
+
+            return path ? `${path}: ${issue.message}` : issue.message;
+          })
+          .join('\n');
+
+        console.error('[fossflow] model validation failed', {
+          issues: validationResult.error.errors,
+          model: _initialData
+        });
+        window.alert(`There is an error in your model.\n\n${details}`);
+        // A failed *reload* must not blank an already-rendered canvas, so keep
+        // the previous model visible. A failed first load has nothing to keep.
+        setIsReady(Boolean(prevInitialData.current));
         return;
       }
 

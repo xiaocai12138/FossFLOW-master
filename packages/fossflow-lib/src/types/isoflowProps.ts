@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { EditorModeEnum, MainMenuOptions } from './common';
 import type { Model } from './model';
 import type { RendererProps } from './rendererProps';
+import type { RuntimeOverlay } from './runtime';
 
 export type InitialData = Model & {
   fitToView?: boolean;
@@ -121,6 +122,8 @@ export interface LocaleProps {
   };
   settings: {
     zoom: {
+      /** 可选，未提供时回退到英文文案 */
+      title?: string;
       description: string;
       zoomToCursor: string;
       zoomToCursorDesc: string;
@@ -183,6 +186,37 @@ export interface LocaleProps {
       lazyLoadingDisabledNote: string;
       note: string;
     };
+    /** 语言设置，可选，未提供的语言文件会自动回退到英文。 */
+    language?: {
+      title: string;
+      description: string;
+      zhCN: string;
+      enUS: string;
+    };
+    /** 图标管理，可选。 */
+    iconManagement?: {
+      title: string;
+      importTitle: string;
+      importDesc: string;
+      selectFiles: string;
+      listTitle: string;
+      searchPlaceholder: string;
+      empty: string;
+      inspectorTitle: string;
+      name: string;
+      scale: string;
+      isometric: string;
+      source: string;
+      sourceUnsupported: string;
+      apply: string;
+      copy: string;
+      download: string;
+      delete: string;
+      applied: string;
+      invalidSvg: string;
+      preview: string;
+      selectHint: string;
+    };
   };
   lazyLoadingWelcome: {
     title: string;
@@ -243,4 +277,11 @@ export interface IsoflowProps {
   customMainMenu?: CustomMainMenuConfig | null;
   isRuntime?: boolean;
   onRuntimeActionEvent?: (data: { item: any; tile: any }) => void;
+  runtimeOverlay?: RuntimeOverlay | null;
+  /** 当前界面语言代码，例如 zh-CN */
+  language?: string;
+  /** 宿主应用提供的可选语言 */
+  supportedLanguages?: Array<{ label: string; value: string }>;
+  /** 切换语言回调 */
+  onLanguageChange?: (lang: string) => void;
 }

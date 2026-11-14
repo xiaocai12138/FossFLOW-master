@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { Box, IconButton as MUIIconButton, FormControlLabel, Switch, Typography } from '@mui/material';
+﻿import React, { useState } from 'react';
+import { Box, FormControlLabel, Switch, Typography } from '@mui/material';
 import { useRectangle } from 'src/hooks/useRectangle';
 import { ColorSelector } from 'src/components/ColorSelector/ColorSelector';
 import { ColorPicker } from 'src/components/ColorSelector/ColorPicker';
 import { useUiStateStore } from 'src/stores/uiStateStore';
 import { useScene } from 'src/hooks/useScene';
-import { Close as CloseIcon } from '@mui/icons-material';
 import { ControlsContainer } from '../components/ControlsContainer';
 import { Section } from '../components/Section';
 import { DeleteButton } from '../components/DeleteButton';
@@ -30,22 +29,6 @@ export const RectangleControls = ({ id }: Props) => {
   return (
     <ControlsContainer>
       <Box sx={{ position: 'relative' }}>
-        {/* Close button */}
-        <MUIIconButton
-          aria-label="Close"
-          onClick={() => {
-            return uiStateActions.setItemControls(null);
-          }}
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            zIndex: 2
-          }}
-          size="small"
-        >
-          <CloseIcon />
-        </MUIIconButton>
         <Section title="Color">
           <FormControlLabel
             control={

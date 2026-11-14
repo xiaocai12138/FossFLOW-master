@@ -5,6 +5,7 @@ import { HotkeyProfile } from 'src/config/hotkeys';
 import { PanSettings } from 'src/config/panSettings';
 import { ZoomSettings } from 'src/config/zoomSettings';
 import { CustomMainMenuConfig, IconPackManagerProps } from './isoflowProps';
+import { RuntimeOverlay } from './runtime';
 
 interface AddItemControls {
   type: 'ADD_ITEM';
@@ -193,6 +194,11 @@ export interface UiState {
   iconPackManager: IconPackManagerProps | null;
   customMainMenu: CustomMainMenuConfig | null;
   isRuntime: boolean;
+  runtimeOverlay: RuntimeOverlay | null;
+  /** 当前界面语言代码，供设置弹窗展示 */
+  language: string | null;
+  supportedLanguages: Array<{ label: string; value: string }> | null;
+  onLanguageChange: ((lang: string) => void) | null;
 }
 
 export interface UiStateActions {
@@ -221,6 +227,12 @@ export interface UiStateActions {
   setIconPackManager: (iconPackManager: IconPackManagerProps | null) => void;
   setCustomMainMenu: (customMainMenu: CustomMainMenuConfig | null) => void;
   setIsRuntime: (isRuntime: boolean) => void;
+  setRuntimeOverlay: (runtimeOverlay: RuntimeOverlay | null) => void;
+  setLanguage: (language: string | null) => void;
+  setSupportedLanguages: (
+    languages: Array<{ label: string; value: string }> | null
+  ) => void;
+  setOnLanguageChange: (handler: ((lang: string) => void) | null) => void;
 }
 
 export type UiStateStore = UiState & {

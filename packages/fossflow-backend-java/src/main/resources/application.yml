@@ -1,0 +1,45 @@
+server:
+  port: ${BACKEND_PORT:3001}
+
+spring:
+  application:
+    name: fossflow-backend
+
+  # 默认 H2 文件库，零外部依赖；生产可切 PostgreSQL
+  datasource:
+    # 用绝对路径派生，避免因启动目录不同而产生多个库文件
+    url: ${DB_URL:jdbc:h2:file:${user.dir}/data/observability;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  jackson:
+    default-property-inclusion: non_null
+
+fossflow:
+  observability:
+    # 环境标识，用于多环境隔离
+    env: ${OBS_ENV:prod}
+    threshold:
+      error-rate-warn: ${OBS_ERR_WARN:5}
+      error-rate-critical: ${OBS_ERR_CRIT:20}
+      p95-warn-ms: ${OBS_P95_WARN_MS:800}
+      p95-critical-ms: ${OBS_P95_CRIT_MS:2000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.fossflow.backend: ${LOG_LEVEL:INFO}

@@ -128,22 +128,6 @@ export const ConnectorControls = ({ id }: Props) => {
       <Box
         sx={{ position: 'relative', paddingTop: '24px', paddingBottom: '24px' }}
       >
-        {/* Close button */}
-        <MUIIconButton
-          aria-label="Close"
-          onClick={() => {
-            return uiStateActions.setItemControls(null);
-          }}
-          sx={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            zIndex: 2
-          }}
-          size="small"
-        >
-          <CloseIcon />
-        </MUIIconButton>
         <Section title="Labels">
           <Box sx={{ mb: 2 }}>
             <Box

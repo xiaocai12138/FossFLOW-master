@@ -22,7 +22,10 @@
     "docker:run": "docker compose -f compose.dev.yml up",
     "update-version": "node scripts/update-version.js",
     "semantic-release": "semantic-release",
-    "export:icons": "node scripts/export-icons.js"
+    "export:icons": "node scripts/export-icons.js",
+    "icons:rebuild-index": "node scripts/rebuild-icon-index.js",
+    "icons:sync": "node scripts/sync-icons-to-public.js",
+    "icons:generate-devops": "node scripts/generate-devops-icons.js"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",

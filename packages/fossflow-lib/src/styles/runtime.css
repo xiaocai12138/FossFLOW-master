@@ -1,0 +1,64 @@
+/* 节点名称旁的健康状态徽标（内联，不再浮在图标上方） */
+.fossflow-runtime-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 16px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: rgba(255, 255, 255, 0.94);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  vertical-align: middle;
+  pointer-events: none;
+  transition: box-shadow 200ms ease;
+}
+
+.fossflow-runtime-badge.is-focused {
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3);
+}
+
+.fossflow-runtime-badge-dot {
+  flex: 0 0 auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.fossflow-runtime-badge-critical .fossflow-runtime-badge-dot,
+.fossflow-runtime-badge-warning .fossflow-runtime-badge-dot {
+  animation: fossflow-runtime-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes fossflow-runtime-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* 调用链路高亮线 */
+.fossflow-runtime-trace-line {
+  pointer-events: none;
+}
+
+.fossflow-runtime-trace-line .fossflow-runtime-trace-active {
+  stroke-dasharray: 22 14;
+  animation: fossflow-runtime-flow 900ms linear infinite;
+}
+
+@keyframes fossflow-runtime-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -36;
+  }
+}

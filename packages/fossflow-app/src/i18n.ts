@@ -8,6 +8,8 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    // 默认简体中文；用户切换过语言时以 localStorage 中的选择为准。
+    lng: 'zh-CN',
     fallbackLng: 'en-US',
     debug: process.env.NODE_ENV === 'development',
     interpolation: {

@@ -13,6 +13,16 @@
   height: 100vh !important;
 }
 
+.fossflow-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #475569;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
 .app-floating-menu {
   position: absolute;
   top: 78px;

@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import { createObservability } from './observability/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +23,29 @@ const ENABLE_GIT_BACKUP = process.env.ENABLE_GIT_BACKUP === 'true';
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+/**
+ * 可观测性模块（可选）：统一图模型 + 指标/日志/Trace 编排。
+ * 启用后会挂载 /api/observability/*，不启用则完全不影响原有存储接口。
+ */
+const observability = await createObservability({ dataDir: STORAGE_PATH }).catch(
+  (error) => {
+    console.error('Failed to initialize observability module:', error.message);
+
+    return null;
+  }
+);
+
+if (observability) {
+  app.use('/api/observability', observability.router);
+  console.log(
+    `Observability: ENABLED (driver=${observability.repository.driver}, collectors=[${
+      observability.collectors.map((collector) => collector.name).join(', ') || 'none'
+    }])`
+  );
+} else {
+  console.log('Observability: DISABLED (set ENABLE_OBSERVABILITY=true to enable)');
+}
 
 // Health check / Storage status endpoint
 app.get('/api/storage/status', (req, res) => {

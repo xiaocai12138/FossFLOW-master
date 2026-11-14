@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Stack, Alert, IconButton as MUIIconButton, Box, Button, FormControlLabel, Checkbox, Typography, Slider } from '@mui/material';
+import { Stack, Alert, Box, Button, FormControlLabel, Checkbox, Typography, Slider } from '@mui/material';
 import { ControlsContainer } from 'src/components/ItemControls/components/ControlsContainer';
 import { useUiStateStore } from 'src/stores/uiStateStore';
 import { useModelStore } from 'src/stores/modelStore';
@@ -8,7 +8,7 @@ import { Section } from 'src/components/ItemControls/components/Section';
 import { Searchbox } from 'src/components/ItemControls/IconSelectionControls/Searchbox';
 import { useIconFiltering } from 'src/hooks/useIconFiltering';
 import { useIconCategories } from 'src/hooks/useIconCategories';
-import { Close as CloseIcon, FileUpload as FileUploadIcon } from '@mui/icons-material';
+import { FileUpload as FileUploadIcon } from '@mui/icons-material';
 import { Icons } from './Icons';
 import { IconGrid } from './IconGrid';
 import { generateId } from 'src/utils';
@@ -186,24 +186,6 @@ export const IconSelectionControls = () => {
             paddingTop: '32px'
           }}
         >
-          {/* Close button */}
-          <MUIIconButton
-            aria-label="Close"
-            onClick={() => {
-              return uiStateActions.setItemControls(null);
-            }}
-            sx={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              zIndex: 2,
-              padding: 0,
-              background: 'none'
-            }}
-            size="small"
-          >
-            <CloseIcon />
-          </MUIIconButton>
           <Stack spacing={2}>
             <Box sx={{ marginTop: '8px' }}>
               <Searchbox value={filter} onChange={setFilter} />

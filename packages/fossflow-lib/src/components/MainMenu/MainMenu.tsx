@@ -18,6 +18,7 @@ import { useUiStateStore } from 'src/stores/uiStateStore';
 import {
   exportAsJSON,
   exportAsCompactJSON,
+  loadAvailableIcons,
   transformFromCompactFormat
 } from 'src/utils/exportOptions';
 import { modelFromModelStore } from 'src/utils';
@@ -84,6 +85,7 @@ export const MainMenu = () => {
 
         // Check format and transform if needed
         if (rawData._?.f === 'compact') {
+          await loadAvailableIcons();
           modelData = transformFromCompactFormat(rawData);
         }
 

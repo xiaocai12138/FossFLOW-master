@@ -41,6 +41,10 @@ const initialState = () => {
       iconPackManager: null, // Will be set by Isoflow if provided
       customMainMenu: null,
       isRuntime: false, // Track if in runtime mode
+      runtimeOverlay: null,
+      language: null,
+      supportedLanguages: null,
+      onLanguageChange: null,
 
       actions: {
         setView: (view) => {
@@ -127,6 +131,18 @@ const initialState = () => {
         },
         setIsRuntime: (isRuntime) => {
           set({ isRuntime });
+        },
+        setRuntimeOverlay: (runtimeOverlay) => {
+          set({ runtimeOverlay });
+        },
+        setLanguage: (language) => {
+          set({ language });
+        },
+        setSupportedLanguages: (supportedLanguages) => {
+          set({ supportedLanguages });
+        },
+        setOnLanguageChange: (onLanguageChange) => {
+          set({ onLanguageChange });
         }
       }
     };

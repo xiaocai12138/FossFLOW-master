@@ -113,6 +113,7 @@ const locale: LocaleProps = {
   },
   settings: {
     zoom: {
+      title: "Zoom Settings",
       description: "Configure zoom behavior when using the mouse wheel.",
       zoomToCursor: "Zoom to Cursor",
       zoomToCursorDesc: "When enabled, zoom in/out centered on the mouse cursor position. When disabled, zoom is centered on the canvas."
@@ -174,6 +175,35 @@ const locale: LocaleProps = {
       iconCount: "{count} icons",
       lazyLoadingDisabledNote: "Lazy loading is disabled. All icon packs are loaded at startup.",
       note: "Icon packs can be enabled or disabled based on your needs. Disabled packs will reduce memory usage and improve performance."
+    },
+    language: {
+      title: "Language",
+      description: "Choose the interface language. Changes apply immediately.",
+      zhCN: "简体中文",
+      enUS: "English"
+    },
+    iconManagement: {
+      title: "Icon Management",
+      importTitle: "Import icons",
+      importDesc: "Select SVG files to import into the current diagram. Multiple files allowed.",
+      selectFiles: "Choose files",
+      listTitle: "Icons",
+      searchPlaceholder: "Search icon name",
+      empty: "No icons yet",
+      inspectorTitle: "Icon details",
+      name: "Name",
+      scale: "Scale",
+      isometric: "Isometric icon",
+      source: "SVG source",
+      sourceUnsupported: "This icon is not an SVG, so its source cannot be edited.",
+      apply: "Apply changes",
+      copy: "Copy source",
+      download: "Download SVG",
+      delete: "Delete icon",
+      applied: "Applied",
+      invalidSvg: "Invalid SVG source. Please check the markup.",
+      preview: "Preview",
+      selectHint: "Select an icon from the list"
     }
   },
   lazyLoadingWelcome: {

@@ -1,7 +1,22 @@
 import domtoimage from 'dom-to-image-more';
 import FileSaver from 'file-saver';
 import { Model, Size } from '../types';
-import { icons as availableIcons } from '../examples/initialData';
+
+let availableIconsCache: Model['icons'] | null = null;
+
+/**
+ * The bundled isopack icon set is large, so it is loaded on demand instead of
+ * being imported statically. Callers fall back to placeholder icons until the
+ * set has been resolved once.
+ */
+export const loadAvailableIcons = async (): Promise<Model['icons']> => {
+  if (availableIconsCache) return availableIconsCache;
+
+  const { icons } = await import('../examples/initialData');
+  availableIconsCache = icons;
+
+  return icons;
+};
 
 export const generateGenericFilename = (extension: string) => {
   return `isoflow-export-${new Date().toISOString()}.${extension}`;
@@ -88,9 +103,11 @@ export const transformFromCompactFormat = (compactModel: any): Model => {
   });
 
   const fullIcons = Array.from(iconSet).map(iconName => {
-    // Find the icon in the available icons library
-    const existingIcon = availableIcons.find(icon => icon.id === iconName || icon.name === iconName);
-    
+    // Find the icon in the (lazily loaded) icon library
+    const existingIcon = availableIconsCache?.find(
+      icon => icon.id === iconName || icon.name === iconName
+    );
+
     if (existingIcon) {
       // Use the existing icon data with proper URL
       return {

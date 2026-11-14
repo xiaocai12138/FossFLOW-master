@@ -20,3 +20,15 @@ parts/
 prime/
 stage/
 overlay/
+
+# 图标索引生成产物与备份（每次启动都会重建）
+*.bak.*
+icons-export/icons-index.csv
+icons-export/icons-index.json
+packages/fossflow-app/public/icons-export/
+
+# 后端运行态数据（H2 文件库）
+data/
+packages/fossflow-backend-java/target/
+packages/fossflow-backend-java/data/
+

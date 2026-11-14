@@ -11,6 +11,7 @@ import { ConnectorLabels } from 'src/components/SceneLayers/ConnectorLabels/Conn
 import { TextBoxes } from 'src/components/SceneLayers/TextBoxes/TextBoxes';
 import { SizeIndicator } from 'src/components/DebugUtils/SizeIndicator';
 import { SceneLayer } from 'src/components/SceneLayer/SceneLayer';
+import { RuntimeTraceLines } from 'src/components/RuntimeOverlay/RuntimeTraceLines';
 import { TransformControlsManager } from 'src/components/TransformControlsManager/TransformControlsManager';
 import { Lasso } from 'src/components/Lasso/Lasso';
 import { FreehandLasso } from 'src/components/FreehandLasso/FreehandLasso';
@@ -83,6 +84,9 @@ export const Renderer = ({ showGrid, backgroundColor }: RendererProps) => {
       )}
       <SceneLayer>
         <Connectors connectors={connectors} />
+      </SceneLayer>
+      <SceneLayer>
+        <RuntimeTraceLines />
       </SceneLayer>
       <SceneLayer>
         <TextBoxes textBoxes={textBoxes} />
