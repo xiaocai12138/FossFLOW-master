@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Isoflow, allLocales, RuntimeOverlay } from 'fossflow';
 import {
   RuntimeDataSource,
   ServiceLog,
-  ServiceState,
   TraceDetail,
   TraceSpan
 } from '../services/runtime/types';
@@ -13,7 +12,12 @@ import {
   loadRuntimeViewConfig,
   saveRuntimeViewConfig
 } from '../services/runtime/runtimeViewConfig';
+import type { RuntimeViewConfig } from '../services/runtime/runtimeViewConfig';
+import { useRuntimeServiceStatus } from '../hooks/useRuntimeServiceStatus';
 import { DraggableModal } from './DraggableModal/DraggableModal';
+import { RuntimeLogViewer } from './RuntimePanels/RuntimeLogViewer';
+import { RuntimeSettings } from './RuntimePanels/RuntimeSettings';
+import { TraceWaterfall } from './TraceWaterfall/TraceWaterfall';
 import './TopologyRunView.css';
 
 interface Props {
@@ -24,6 +28,17 @@ interface Props {
 }
 
 type Panel = 'none' | 'overview' | 'trace';
+const TRACE_TABS = [
+  { id: 'waterfall', label: '调用瀑布图' },
+  { id: 'logs', label: '调用日志' }
+] as const;
+type TraceTab = (typeof TRACE_TABS)[number]['id'];
+type TraceSelection = { type: 'span'; span: TraceSpan } | { type: 'log'; log: ServiceLog };
+interface TraceLogs {
+  trace: TraceDetail;
+  entries: ServiceLog[];
+  notice?: string;
+}
 
 const STATUS_LABEL: Record<string, string> = {
   HEALTHY: '健康',
@@ -31,13 +46,6 @@ const STATUS_LABEL: Record<string, string> = {
   CRITICAL: '严重',
   OFFLINE: '离线',
   UNKNOWN: '未知'
-};
-
-const LEVEL_ORDER: Record<string, number> = {
-  DEBUG: 0,
-  INFO: 1,
-  WARN: 2,
-  ERROR: 3
 };
 
 const formatDuration = (ms: number) => {
@@ -68,11 +76,17 @@ const gaugeTone = (value: number) => {
 
 /* ---------------------------------------------------------------- 图标 */
 
-const IconTopology = () => (
+const IconMenu = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <rect x="3" y="3" width="7" height="7" rx="2" />
-    <rect x="14" y="14" width="7" height="7" rx="2" />
-    <path d="M6.5 10v4a3.5 3.5 0 0 0 3.5 3.5h4" strokeLinecap="round" />
+    <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+  </svg>
+);
+
+const IconSettings = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M4 7h7m4 0h5M4 17h11m4 0h1" strokeLinecap="round" />
+    <circle cx="13" cy="7" r="2" />
+    <circle cx="17" cy="17" r="2" />
   </svg>
 );
 
@@ -152,13 +166,6 @@ const IconAlert = () => (
   </svg>
 );
 
-const IconLog = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <rect x="4" y="3.5" width="16" height="17" rx="2.5" />
-    <path d="M8 8.5h8M8 12.5h8M8 16.5h5" strokeLinecap="round" />
-  </svg>
-);
-
 const IconNode = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
     <circle cx="12" cy="12" r="3.2" />
@@ -177,23 +184,27 @@ export default function TopologyRunView({
   onBackToEditor,
   dataSource
 }: Props) {
-  const [services, setServices] = useState<ServiceState[]>([]);
   const [traceInput, setTraceInput] = useState('');
   const [activeTrace, setActiveTrace] = useState<TraceDetail | null>(null);
+  const [traceTab, setTraceTab] = useState<TraceTab>('waterfall');
+  const traceTabsId = useId();
   const [traceError, setTraceError] = useState<string | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const [logs, setLogs] = useState<ServiceLog[]>([]);
-  const [levelFilter, setLevelFilter] = useState<'ALL' | 'INFO' | 'WARN' | 'ERROR'>(
-    'ALL'
-  );
+  const [traceLogs, setTraceLogs] = useState<TraceLogs | null>(null);
   const [panel, setPanel] = useState<Panel>('none');
+  const [menuOpen, setMenuOpen] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [config, setConfig] = useState(() => loadRuntimeViewConfig());
   const [revealRatio, setRevealRatio] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingTrace, setIsLoadingTrace] = useState(false);
+  const [traceSelection, setTraceSelection] = useState<TraceSelection | null>(null);
 
-  const playTimer = useRef<number | null>(null);
+  const traceRequest = useRef(0);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const panelTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const diagramItems = useMemo(() => {
     return (baseDiagram?.items ?? []) as Array<{
@@ -236,25 +247,10 @@ export default function TopologyRunView({
         : item;
     });
 
-    return { ...baseDiagram, items, fitToScreen: true };
+    return { ...baseDiagram, items, fitToView: true };
   }, [baseDiagram, displayNameById]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    dataSource
-      .listServices(diagramItems.map((item) => ({ id: item.id, name: item.name })))
-      .then((result) => {
-        if (!cancelled) setServices(result);
-      })
-      .catch(() => {
-        if (!cancelled) setServices([]);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [dataSource, diagramItems]);
+  const services = useRuntimeServiceStatus(dataSource, diagramItems, config.nodeStatusRefreshSeconds);
 
   const serviceById = useMemo(() => {
     return new Map(services.map((service) => [service.itemId, service]));
@@ -266,30 +262,38 @@ export default function TopologyRunView({
     : '节点详情';
 
   useEffect(() => {
-    if (!selectedItemId) {
-      setLogs([]);
-      return;
-    }
-
+    if (!activeTrace) return;
     let cancelled = false;
+    const itemIds = Array.from(new Set(activeTrace.spans.map((span) => span.itemId)));
 
-    dataSource
-      .getServiceLogs({
-        itemId: selectedItemId,
-        traceId: activeTrace?.traceId,
-        limit: 40
-      })
-      .then((result) => {
-        if (!cancelled) setLogs(result);
-      })
-      .catch(() => {
-        if (!cancelled) setLogs([]);
-      });
+    Promise.allSettled(
+      itemIds.map(async (itemId) =>
+        dataSource.getServiceLogs({ itemId, traceId: activeTrace.traceId, limit: 40 })
+      )
+    ).then((results) => {
+      if (cancelled) return;
+
+      const entries: ServiceLog[] = [];
+      let failed = 0;
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          failed += 1;
+          continue;
+        }
+
+        entries.push(...result.value.filter((log) => !log.traceId || log.traceId === activeTrace.traceId));
+      }
+      entries.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+      const notice = failed > 0
+        ? (failed === results.length ? '调用日志加载失败' : '部分节点的日志加载失败')
+        : undefined;
+      setTraceLogs({ trace: activeTrace, entries, notice });
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [activeTrace?.traceId, dataSource, selectedItemId]);
+  }, [activeTrace, dataSource]);
 
   const traceSteps = useMemo(() => {
     if (!activeTrace) return [];
@@ -297,17 +301,27 @@ export default function TopologyRunView({
     return toTraceSteps(activeTrace);
   }, [activeTrace]);
 
-  useEffect(() => {
-    if (!isPlaying) {
-      if (playTimer.current !== null) {
-        window.clearInterval(playTimer.current);
-        playTimer.current = null;
-      }
+  const logSourceNames = useMemo(() => {
+    return new Map(
+      traceSteps.map(({ itemId, serviceName }) => [itemId, displayNameById.get(itemId) ?? serviceName])
+    );
+  }, [displayNameById, traceSteps]);
+  const loadedTraceLogs = traceLogs?.trace === activeTrace ? traceLogs : null;
+  const traceItemId = traceSelection?.type === 'log'
+    ? traceSelection.log.itemId
+    : traceSelection?.span.itemId;
+  const focusedItemId = panel === 'trace' ? traceItemId : selectedItemId;
+  const traceOnCanvas = panel === 'trace' ? activeTrace : null;
+  const canvasRevealRatio = traceOnCanvas ? revealRatio : 1;
 
+  useEffect(() => {
+    if (panel !== 'trace') {
+      if (isPlaying) setIsPlaying(false);
       return;
     }
+    if (!isPlaying) return;
 
-    playTimer.current = window.setInterval(() => {
+    const timer = window.setInterval(() => {
       setRevealRatio((previous) => {
         const next = previous + 0.08;
 
@@ -320,33 +334,28 @@ export default function TopologyRunView({
       });
     }, 260);
 
-    return () => {
-      if (playTimer.current !== null) {
-        window.clearInterval(playTimer.current);
-        playTimer.current = null;
-      }
-    };
-  }, [isPlaying]);
+    return () => window.clearInterval(timer);
+  }, [isPlaying, panel]);
 
   const runtimeOverlay = useMemo<RuntimeOverlay>(() => {
     return {
       ...buildRuntimeOverlay({
-        trace: activeTrace,
+        trace: traceOnCanvas,
         services,
         view: currentView,
-        selectedItemId,
-        revealRatio: activeTrace ? revealRatio : 1,
+        selectedItemId: focusedItemId,
+        revealRatio: canvasRevealRatio,
         showHealth: config.showNodeHealth
       }),
       statusLabels: STATUS_LABEL
     };
   }, [
-    activeTrace,
+    canvasRevealRatio,
     config.showNodeHealth,
     currentView,
-    revealRatio,
-    selectedItemId,
-    services
+    focusedItemId,
+    services,
+    traceOnCanvas
   ]);
 
   const summary = useMemo(() => {
@@ -363,21 +372,31 @@ export default function TopologyRunView({
     return { total, unhealthy, warning, avgLatency };
   }, [services]);
 
-  const filteredLogs = useMemo(() => {
-    if (levelFilter === 'ALL') return logs;
-
-    return logs.filter((log) => {
-      return LEVEL_ORDER[log.level] >= LEVEL_ORDER[levelFilter];
-    });
-  }, [levelFilter, logs]);
-
   /* ---- 交互 ---- */
 
-  const closePanel = useCallback(() => setPanel('none'), []);
+  const closePanel = useCallback(() => {
+    setPanel('none');
+    panelTriggerRef.current?.focus();
+  }, []);
 
-  const toggleHealth = (next: boolean) => {
-    const nextConfig = { ...config, showNodeHealth: next };
+  const closeSettings = useCallback(() => {
+    setSettingsOpen(false);
+    menuTriggerRef.current?.focus();
+  }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handleOutsidePointer = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handleOutsidePointer);
+
+    return () => document.removeEventListener('pointerdown', handleOutsidePointer);
+  }, [menuOpen]);
+
+  const updateConfig = (nextConfig: RuntimeViewConfig) => {
     setConfig(nextConfig);
     saveRuntimeViewConfig(nextConfig);
   };
@@ -386,12 +405,27 @@ export default function TopologyRunView({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
 
+      if (menuOpen) {
+        event.stopPropagation();
+        setMenuOpen(false);
+        menuTriggerRef.current?.focus();
+        return;
+      }
+
+      if (settingsOpen) {
+        event.stopPropagation();
+        closeSettings();
+        return;
+      }
+
       if (panel !== 'none') {
-        setPanel('none');
+        event.stopPropagation();
+        closePanel();
         return;
       }
 
       if (legendOpen) {
+        event.stopPropagation();
         setLegendOpen(false);
         return;
       }
@@ -399,10 +433,18 @@ export default function TopologyRunView({
       if (selectedItemId) setSelectedItemId(null);
     };
 
-    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keydown', onKeyDown, true);
 
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [legendOpen, panel, selectedItemId]);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [closePanel, closeSettings, legendOpen, menuOpen, panel, selectedItemId, settingsOpen]);
+
+  const openPanel = (next: Exclude<Panel, 'none'>, trigger = menuTriggerRef.current) => {
+    panelTriggerRef.current = trigger;
+    setMenuOpen(false);
+    setLegendOpen(false);
+    setSelectedItemId(null);
+    setPanel(next);
+  };
 
   const handleRuntimeAction = (data: { item?: { id?: string } }) => {
     const itemId = data?.item?.id;
@@ -414,6 +456,7 @@ export default function TopologyRunView({
   };
 
   const handleTraceQuery = async () => {
+    if (isLoadingTrace) return;
     const traceId = traceInput.trim();
 
     if (!traceId) {
@@ -421,14 +464,19 @@ export default function TopologyRunView({
       return;
     }
 
+    const request = ++traceRequest.current;
     setTraceError(null);
+    setActiveTrace(null);
+    setTraceLogs(null);
+    setTraceSelection(null);
+    setIsPlaying(false);
     setIsLoadingTrace(true);
 
     try {
       const result = await dataSource.getTrace(traceId);
+      if (request !== traceRequest.current) return;
 
       if (!result) {
-        setActiveTrace(null);
         setTraceError(`未找到 TraceId: ${traceId}`);
         return;
       }
@@ -437,25 +485,44 @@ export default function TopologyRunView({
       setRevealRatio(0);
       setIsPlaying(true);
     } catch (error) {
-      setTraceError(error instanceof Error ? error.message : '查询失败');
+      if (request === traceRequest.current) {
+        setTraceError(error instanceof Error ? error.message : '查询失败');
+      }
     } finally {
-      setIsLoadingTrace(false);
+      if (request === traceRequest.current) setIsLoadingTrace(false);
     }
   };
 
   const handleReset = () => {
+    traceRequest.current += 1;
+    setIsLoadingTrace(false);
     setActiveTrace(null);
+    setTraceTab('waterfall');
+    setTraceLogs(null);
     setTraceError(null);
     setSelectedItemId(null);
     setTraceInput('');
     setRevealRatio(1);
     setIsPlaying(false);
+    setTraceSelection(null);
   };
 
   const focusNode = (itemId: string) => {
     setSelectedItemId(itemId);
     setPanel('none');
   };
+
+  const handleSelectSpan = (span: TraceSpan) => {
+    setTraceSelection({ type: 'span', span });
+  };
+
+  const handleSelectLog = useCallback((log: ServiceLog | null) => {
+    setTraceSelection((selection) => {
+      if (!log) return null;
+      if (selection?.type === 'log' && selection.log === log) return selection;
+      return { type: 'log', log };
+    });
+  }, []);
 
   const togglePlayback = () => {
     if (revealRatio >= 1) setRevealRatio(0);
@@ -475,61 +542,80 @@ export default function TopologyRunView({
           isRuntime={true}
           onRuntimeActionEvent={handleRuntimeAction}
           runtimeOverlay={runtimeOverlay}
+          runtimeToolbarExtra={
+            <button
+              type="button"
+              className="rt-legend-toggle"
+              onClick={() => setLegendOpen((open) => !open)}
+              aria-expanded={legendOpen}
+              aria-controls="runtime-legend"
+              title="图例"
+              aria-label="图例"
+            >
+              <IconLayers />
+            </button>
+          }
         />
       </div>
 
-      {/* 顶部 HUD */}
-      <header className="rt-hud rt-hud-top">
-        <div className="rt-brand">
-          <span className="rt-brand-mark">
-            <IconTopology />
-          </span>
-          <div className="rt-brand-text">
-            <strong>DevOps 运行视图</strong>
-            <span>架构拓扑与调用链路</span>
-          </div>
-          <span className="rt-env">RUNTIME</span>
-        </div>
-
-        <div className="rt-hud-actions">
-          <button
-            className={['rt-hud-btn', alertCount > 0 ? 'is-alert' : 'is-ok'].join(' ')}
-            onClick={() => setPanel('overview')}
-            title="服务概览"
-          >
-            <span className="rt-hud-dot" />
-            {alertCount > 0 ? `${alertCount} 项异常` : '全部健康'}
+      <div
+        className="rt-main-menu"
+        ref={menuRef}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false);
+        }}
+      >
+        <button
+          type="button"
+          className="rt-menu-trigger"
+          ref={menuTriggerRef}
+          aria-label="主菜单"
+          aria-expanded={menuOpen}
+          aria-controls="runtime-main-menu"
+          onClick={() => {
+            setMenuOpen((open) => !open);
+            setLegendOpen(false);
+          }}
+        >
+          <IconMenu />
+        </button>
+        <nav
+          id="runtime-main-menu"
+          className="rt-menu-items"
+          aria-label="运行视图菜单"
+          hidden={!menuOpen}
+        >
+          <button type="button" className="rt-hud-btn" onClick={() => openPanel('overview')}>
+            <IconTable /> 服务概览
           </button>
-
           <button
+            type="button"
             className="rt-hud-btn"
-            onClick={() => setPanel('overview')}
-            title="服务清单"
+            aria-haspopup="dialog"
+            onClick={() => openPanel('trace')}
           >
-            <IconTable />
-            概览
+            <IconChain /> 调用链路
           </button>
-
+          <button type="button" className="rt-hud-btn" onClick={onBackToEditor}>
+            <IconBack /> 返回编辑
+          </button>
+          <hr className="rt-menu-divider" />
           <button
-            className={['rt-hud-btn', activeTrace ? 'is-live' : '']
-              .filter(Boolean)
-              .join(' ')}
-            onClick={() => setPanel('trace')}
-            title="调用链路"
+            type="button"
+            className="rt-hud-btn"
+            aria-haspopup="dialog"
+            onClick={() => {
+              setMenuOpen(false);
+              setLegendOpen(false);
+              setSettingsOpen(true);
+            }}
           >
-            <IconChain />
-            调用链路
+            <IconSettings /> 设置
           </button>
+        </nav>
+      </div>
 
-          <button className="rt-hud-btn" onClick={onBackToEditor} title="返回编辑模式">
-            <IconBack />
-            编辑
-          </button>
-        </div>
-      </header>
-
-      {/* 图例与显示配置 */}
-      <div className="rt-legend">
+      <div className="rt-legend" id="runtime-legend" hidden={!legendOpen}>
         {legendOpen ? (
           <div className="rt-legend-card">
             <div className="rt-legend-head">
@@ -565,7 +651,7 @@ export default function TopologyRunView({
                 type="checkbox"
                 className="rt-switch"
                 checked={config.showNodeHealth}
-                onChange={(event) => toggleHealth(event.target.checked)}
+                onChange={(event) => updateConfig({ ...config, showNodeHealth: event.target.checked })}
               />
             </label>
 
@@ -574,17 +660,17 @@ export default function TopologyRunView({
             </div>
           </div>
         ) : null}
-
-        <button
-          className="rt-hud-btn rt-legend-toggle"
-          onClick={() => setLegendOpen((open) => !open)}
-          aria-expanded={legendOpen}
-          title="图层图例"
-        >
-          <IconLayers />
-          图例
-        </button>
       </div>
+
+      <button
+        type="button"
+        className={['rt-hud-btn', 'rt-map-health', alertCount > 0 ? 'is-alert' : 'is-ok'].join(' ')}
+        onClick={(event) => openPanel('overview', event.currentTarget)}
+        aria-haspopup="dialog"
+      >
+        <span className="rt-hud-dot" />
+        {alertCount > 0 ? `${alertCount} 项异常` : services.length > 0 ? '全部健康' : '暂无状态'}
+      </button>
 
       {/* 底部状态条 */}
       <div className="rt-statusbar">
@@ -597,145 +683,95 @@ export default function TopologyRunView({
         </span>
         <span className="rt-divider" />
         <span>
-          平均 P95 <b>{formatDuration(summary.avgLatency)}</b>
+          平均 P95 <b>{summary.total > 0 ? formatDuration(summary.avgLatency) : '—'}</b>
         </span>
-        {activeTrace ? (
-          <>
-            <span className="rt-divider" />
-            <span className="rt-statusbar-live">
-              {activeTrace.traceId} · {traceSteps.length} Span
-            </span>
-          </>
-        ) : null}
       </div>
 
-      {/* 节点详情（可拖动模态框） */}
-      {selectedService ? (
+      {/* 节点详情随画布上的选择更新。 */}
+      {selectedItemId ? (
         <DraggableModal
           title={selectedName}
+          allowCanvasInteraction
           icon={<IconNode />}
           width={392}
           onClose={() => setSelectedItemId(null)}
-          badge={
+          badge={selectedService && (
             <span
               className={`rt-pill rt-pill-${selectedService.status.toLowerCase()}`}
             >
               {STATUS_LABEL[selectedService.status] ?? selectedService.status}
             </span>
-          }
+          )}
         >
-          <div className="rt-detail">
-            <div className="rt-detail-meta">
-              <span className="rt-mono">{selectedService.instance ?? '--'}</span>
-              <span className="rt-divider" />
-              <span>{selectedService.region ?? '--'}</span>
-            </div>
+          {selectedService ? (
+            <div className="rt-detail">
+              <div className="rt-detail-meta">
+                <span className="rt-mono">{selectedService.instance ?? '--'}</span>
+                <span className="rt-divider" />
+                <span>{selectedService.region ?? '--'}</span>
+              </div>
 
-            <div className="rt-gauges">
-              <div className="rt-gauge">
-                <div className="rt-gauge-head">
-                  <span>CPU</span>
-                  <strong>{selectedService.metrics.cpu}%</strong>
-                </div>
-                <div className="rt-gauge-track">
-                  <div
-                    className={`rt-gauge-fill ${gaugeTone(selectedService.metrics.cpu)}`}
-                    style={{ width: `${Math.min(100, selectedService.metrics.cpu)}%` }}
-                  />
-                </div>
-              </div>
-              <div className="rt-gauge">
-                <div className="rt-gauge-head">
-                  <span>内存</span>
-                  <strong>{selectedService.metrics.memory}%</strong>
-                </div>
-                <div className="rt-gauge-track">
-                  <div
-                    className={`rt-gauge-fill ${gaugeTone(selectedService.metrics.memory)}`}
-                    style={{ width: `${Math.min(100, selectedService.metrics.memory)}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <dl className="rt-facts">
-              <div>
-                <dt>版本</dt>
-                <dd className="rt-mono">{selectedService.version ?? '--'}</dd>
-              </div>
-              <div>
-                <dt>运行时长</dt>
-                <dd>{formatUptime(selectedService.metrics.uptimeSeconds)}</dd>
-              </div>
-              <div>
-                <dt>P95 延迟</dt>
-                <dd>{formatDuration(selectedService.metrics.latencyP95Ms)}</dd>
-              </div>
-              <div>
-                <dt>QPS</dt>
-                <dd>{selectedService.metrics.qps}</dd>
-              </div>
-              <div>
-                <dt>错误率</dt>
-                <dd>{selectedService.metrics.errorRate}%</dd>
-              </div>
-              <div>
-                <dt>最近心跳</dt>
-                <dd>
-                  {selectedService.lastHeartbeat
-                    ? new Date(selectedService.lastHeartbeat).toLocaleTimeString()
-                    : '--'}
-                </dd>
-              </div>
-            </dl>
-
-            <div className="rt-log-head">
-              <h3>
-                <IconLog /> 调用日志
-              </h3>
-              <div className="rt-segmented">
-                {(['ALL', 'INFO', 'WARN', 'ERROR'] as const).map((level) => (
-                  <button
-                    key={level}
-                    className={[
-                      'rt-segment',
-                      levelFilter === level ? 'is-active' : ''
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                    onClick={() => setLevelFilter(level)}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="rt-logs">
-              {filteredLogs.length === 0 ? (
-                <div className="rt-empty">
-                  <span>暂无匹配日志</span>
-                </div>
-              ) : (
-                filteredLogs.map((log) => (
-                  <div key={log.id} className="rt-log">
-                    <span
-                      className={`rt-log-level rt-log-level-${log.level.toLowerCase()}`}
-                    >
-                      {log.level}
-                    </span>
-                    <div className="rt-log-body">
-                      <span className="rt-log-time">
-                        {new Date(log.timestamp).toLocaleTimeString()}
-                        {log.traceId ? ` · ${log.traceId}` : ''}
-                      </span>
-                      <p>{log.message}</p>
-                    </div>
+              <div className="rt-gauges">
+                <div className="rt-gauge">
+                  <div className="rt-gauge-head">
+                    <span>CPU</span>
+                    <strong>{selectedService.metrics.cpu}%</strong>
                   </div>
-                ))
-              )}
+                  <div className="rt-gauge-track">
+                    <div
+                      className={`rt-gauge-fill ${gaugeTone(selectedService.metrics.cpu)}`}
+                      style={{ width: `${Math.min(100, selectedService.metrics.cpu)}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="rt-gauge">
+                  <div className="rt-gauge-head">
+                    <span>内存</span>
+                    <strong>{selectedService.metrics.memory}%</strong>
+                  </div>
+                  <div className="rt-gauge-track">
+                    <div
+                      className={`rt-gauge-fill ${gaugeTone(selectedService.metrics.memory)}`}
+                      style={{ width: `${Math.min(100, selectedService.metrics.memory)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <dl className="rt-facts">
+                <div>
+                  <dt>版本</dt>
+                  <dd className="rt-mono">{selectedService.version ?? '--'}</dd>
+                </div>
+                <div>
+                  <dt>运行时长</dt>
+                  <dd>{formatUptime(selectedService.metrics.uptimeSeconds)}</dd>
+                </div>
+                <div>
+                  <dt>P95 延迟</dt>
+                  <dd>{formatDuration(selectedService.metrics.latencyP95Ms)}</dd>
+                </div>
+                <div>
+                  <dt>QPS</dt>
+                  <dd>{selectedService.metrics.qps}</dd>
+                </div>
+                <div>
+                  <dt>错误率</dt>
+                  <dd>{selectedService.metrics.errorRate}%</dd>
+                </div>
+                <div>
+                  <dt>最近心跳</dt>
+                  <dd>
+                    {selectedService.lastHeartbeat
+                      ? new Date(selectedService.lastHeartbeat).toLocaleTimeString()
+                      : '--'}
+                  </dd>
+                </div>
+              </dl>
             </div>
-          </div>
+          ) : (
+            <div className="rt-empty" role="status">暂无节点指标</div>
+          )}
         </DraggableModal>
       ) : null}
 
@@ -831,8 +867,11 @@ export default function TopologyRunView({
       {panel === 'trace' ? (
         <DraggableModal
           title="调用链路"
+          placement="top-right"
+          allowCanvasInteraction
+          bodyClassName="rt-trace-body"
           icon={<IconChain />}
-          width={560}
+          width={680}
           onClose={closePanel}
           badge={
             activeTrace ? (
@@ -840,7 +879,7 @@ export default function TopologyRunView({
             ) : null
           }
         >
-          <div className="rt-query">
+          <div className="rt-query rt-trace-query">
             <div className="rt-query-field">
               <IconSearch />
               <input
@@ -851,6 +890,7 @@ export default function TopologyRunView({
                   if (event.key === 'Enter') handleTraceQuery();
                 }}
                 aria-label="TraceId"
+                autoFocus
               />
             </div>
             <button
@@ -879,71 +919,98 @@ export default function TopologyRunView({
 
           {activeTrace ? (
             <>
-              <div className="rt-playback">
-                <button
-                  className="rt-btn rt-btn-ghost rt-icon-only"
-                  onClick={togglePlayback}
-                  title={isPlaying ? '暂停回放' : '播放回放'}
-                >
-                  {isPlaying ? <IconPause /> : <IconPlay />}
-                </button>
-                <input
-                  className="rt-range"
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={Math.round(revealRatio * 100)}
-                  onChange={(event) => {
-                    setIsPlaying(false);
-                    setRevealRatio(Number(event.target.value) / 100);
-                  }}
-                  aria-label="回放进度"
+              <div
+                className="rt-trace-tabs"
+                role="tablist"
+                aria-label="链路详情"
+                onKeyDown={(event) => {
+                  const { key } = event;
+                  if (key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Home' && key !== 'End') return;
+                  event.preventDefault();
+                  const next = key === 'Home' || (key !== 'End' && traceTab === 'logs') ? 'waterfall' : 'logs';
+                  setTraceTab(next);
+                  event.currentTarget.querySelector<HTMLButtonElement>(`[data-trace-tab="${next}"]`)?.focus();
+                }}
+              >
+                {TRACE_TABS.map(({ id, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    id={`${traceTabsId}-tab-${id}`}
+                    data-trace-tab={id}
+                    aria-selected={traceTab === id}
+                    aria-controls={`${traceTabsId}-panel-${id}`}
+                    tabIndex={traceTab === id ? 0 : -1}
+                    onClick={() => setTraceTab(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div
+                className="rt-trace-pane"
+                role="tabpanel"
+                id={`${traceTabsId}-panel-waterfall`}
+                aria-labelledby={`${traceTabsId}-tab-waterfall`}
+                hidden={traceTab !== 'waterfall'}
+                tabIndex={0}
+              >
+                <div className="rt-playback">
+                  <button
+                    className="rt-btn rt-btn-ghost rt-icon-only"
+                    onClick={togglePlayback}
+                    title={isPlaying ? '暂停回放' : '播放回放'}
+                  >
+                    {isPlaying ? <IconPause /> : <IconPlay />}
+                  </button>
+                  <input
+                    className="rt-range"
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={Math.round(revealRatio * 100)}
+                    onChange={(event) => {
+                      setIsPlaying(false);
+                      setRevealRatio(Number(event.target.value) / 100);
+                    }}
+                    aria-label="回放进度"
+                  />
+                  <span className="rt-playback-value">
+                    {Math.round(revealRatio * 100)}%
+                  </span>
+                  <span className="rt-divider" />
+                  <span className="rt-mono rt-muted">
+                    总耗时 {formatDuration(activeTrace.totalDurationMs)}
+                  </span>
+                </div>
+
+                <TraceWaterfall
+                  trace={activeTrace}
+                  revealRatio={revealRatio}
+                  activeSpanId={traceSelection?.type === 'span' ? traceSelection.span.spanId : null}
+                  onSelectSpan={handleSelectSpan}
                 />
-                <span className="rt-playback-value">
-                  {Math.round(revealRatio * 100)}%
-                </span>
-                <span className="rt-divider" />
-                <span className="rt-mono rt-muted">
-                  总耗时 {formatDuration(activeTrace.totalDurationMs)}
-                </span>
               </div>
 
-              <div className="rt-chain">
-                {traceSteps.map((span, index) => {
-                  const reached =
-                    revealRatio >= 1
-                      ? true
-                      : index / Math.max(1, traceSteps.length - 1) <= revealRatio;
-
-                  return (
-                    <button
-                      key={span.spanId}
-                      className={[
-                        'rt-chain-item',
-                        `is-${span.outcome.toLowerCase()}`,
-                        reached ? '' : 'is-pending',
-                        selectedItemId === span.itemId ? 'is-selected' : ''
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                      onClick={() => focusNode(span.itemId)}
-                    >
-                      <span className="rt-chain-step">{index + 1}</span>
-                      <span className="rt-chain-main">
-                        <strong>
-                          {displayNameById.get(span.itemId) ?? span.serviceName}
-                        </strong>
-                        <span className="rt-mono">{span.operation}</span>
-                      </span>
-                      <span className="rt-chain-meta">
-                        <em>{formatDuration(span.durationMs)}</em>
-                        <span className={span.outcome === 'OK' ? '' : 'is-bad'}>
-                          {span.statusCode}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
+              <div
+                className="rt-trace-pane rt-trace-logs"
+                role="tabpanel"
+                id={`${traceTabsId}-panel-logs`}
+                aria-labelledby={`${traceTabsId}-tab-logs`}
+                hidden={traceTab !== 'logs'}
+                tabIndex={0}
+              >
+                <RuntimeLogViewer
+                  key={activeTrace.traceId}
+                  entries={loadedTraceLogs?.entries ?? []}
+                  sourceNames={logSourceNames}
+                  selectedLog={traceSelection?.type === 'log' ? traceSelection.log : null}
+                  onSelect={handleSelectLog}
+                  colors={config.logColors}
+                  loading={!loadedTraceLogs}
+                  notice={loadedTraceLogs?.notice}
+                />
               </div>
             </>
           ) : (
@@ -957,6 +1024,9 @@ export default function TopologyRunView({
           )}
         </DraggableModal>
       ) : null}
+      {settingsOpen && (
+        <RuntimeSettings config={config} onChange={updateConfig} onClose={closeSettings} />
+      )}
     </div>
   );
 }

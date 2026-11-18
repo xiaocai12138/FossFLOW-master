@@ -1,9 +1,14 @@
 import React, {
   ReactNode,
   useEffect,
+  useId,
   useRef,
   useState
 } from 'react';
+import {
+  lockCanvasInteractions,
+  unlockCanvasInteractions
+} from 'fossflow';
 import './DraggableModal.css';
 
 export interface DraggableModalProps {
@@ -12,6 +17,10 @@ export interface DraggableModalProps {
   badge?: ReactNode;
   onClose: () => void;
   width?: number;
+  placement?: 'top-right';
+  allowCanvasInteraction?: boolean;
+  panelClassName?: string;
+  bodyClassName?: string;
   children: ReactNode;
 }
 
@@ -31,8 +40,10 @@ const clamp = (value: number, min: number, max: number) =>
 
 const MARGIN = 8;
 
+const stopCanvasEvent = (event: React.SyntheticEvent) => event.stopPropagation();
+
 /**
- * 居中弹出的模态框，标题栏可拖动，拖动范围被限制在视口内。
+ * 标题栏可拖动，拖动范围被限制在视口内。
  */
 export const DraggableModal = ({
   title,
@@ -40,13 +51,29 @@ export const DraggableModal = ({
   badge,
   onClose,
   width = 520,
+  placement,
+  allowCanvasInteraction = false,
+  panelClassName,
+  bodyClassName,
   children
 }: DraggableModalProps) => {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
+  const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const originRef = useRef<DragOrigin | null>(null);
   const offsetRef = useRef(offset);
+
+  useEffect(() => {
+    if (allowCanvasInteraction) return;
+
+    lockCanvasInteractions();
+
+    return () => unlockCanvasInteractions();
+  }, [allowCanvasInteraction]);
+
+  // 非模态弹窗只拦截从弹窗内开始的交互，画布上的拖动仍可跨过弹窗。
+  const isolateCanvasEvent = allowCanvasInteraction ? stopCanvasEvent : undefined;
 
   offsetRef.current = offset;
 
@@ -114,12 +141,20 @@ export const DraggableModal = ({
   }, [dragging]);
 
   return (
-    <div className={`rtm-backdrop ${dragging ? 'is-dragging' : ''}`}>
+    <div
+      className={`rtm-backdrop ${placement === 'top-right' ? 'rtm-top-right' : ''} ${dragging ? 'is-dragging' : ''}`}
+      data-canvas-interaction={allowCanvasInteraction ? 'allow' : undefined}
+    >
       <div
         ref={panelRef}
-        className="rtm-panel"
+        className={panelClassName ? `rtm-panel ${panelClassName}` : 'rtm-panel'}
         role="dialog"
         aria-modal="false"
+        aria-labelledby={titleId}
+        onMouseDown={isolateCanvasEvent}
+        onTouchStart={isolateCanvasEvent}
+        onContextMenu={isolateCanvasEvent}
+        onKeyDown={isolateCanvasEvent}
         style={{
           width,
           transform: `translate(${offset.x}px, ${offset.y}px)`
@@ -128,7 +163,7 @@ export const DraggableModal = ({
         <header className="rtm-header" onPointerDown={handlePointerDown}>
           <div className="rtm-title">
             {icon ? <span className="rtm-title-icon">{icon}</span> : null}
-            <strong>{title}</strong>
+            <strong id={titleId}>{title}</strong>
             {badge}
           </div>
           <button className="rtm-close" onClick={onClose} aria-label="关闭">
@@ -137,7 +172,7 @@ export const DraggableModal = ({
             </svg>
           </button>
         </header>
-        <div className="rtm-body">{children}</div>
+        <div className={bodyClassName ? `rtm-body ${bodyClassName}` : 'rtm-body'}>{children}</div>
       </div>
     </div>
   );

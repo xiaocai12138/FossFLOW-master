@@ -4,6 +4,7 @@ import { useUiStateStore } from 'src/stores/uiStateStore';
 import { ModeActions, State, SlimMouseEvent } from 'src/types';
 import { DialogTypeEnum } from 'src/types/ui';
 import { getMouse, getItemAtTile, generateId, incrementZoom, decrementZoom } from 'src/utils';
+import { isCanvasInteractionLocked } from 'src/utils/canvasInteractionLock';
 import { useResizeObserver } from 'src/hooks/useResizeObserver';
 import { useScene } from 'src/hooks/useScene';
 import { useHistory } from 'src/hooks/useHistory';
@@ -20,7 +21,6 @@ import { PlaceIcon } from './modes/PlaceIcon';
 import { TextBox } from './modes/TextBox';
 import { Lasso } from './modes/Lasso';
 import { FreehandLasso } from './modes/FreehandLasso';
-import { usePanHandlers } from './usePanHandlers';
 
 const modes: { [k in string]: ModeActions } = {
   CURSOR: Cursor,
@@ -62,11 +62,13 @@ export const useInteractionManager = () => {
   const { size: rendererSize } = useResizeObserver(uiState.rendererEl);
   const { undo, redo, canUndo, canRedo } = useHistory();
   const { createTextBox } = scene;
-  const { handleMouseDown: handlePanMouseDown, handleMouseUp: handlePanMouseUp } = usePanHandlers();
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 模态弹窗打开时画布不接收任何键盘交互（含方向键平移、工具切换）
+      if (isCanvasInteractionLocked()) return;
+
       // ESC key handling - should work even in input fields
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -77,7 +79,18 @@ export const useInteractionManager = () => {
           return;
         }
 
-        // Priority 2: Cancel in-progress connector
+        // Priority 2: 平移是工具而不是临时手势，Esc 回到选择工具
+        if (uiState.mode.type === 'PAN') {
+          const cursor = { showCursor: true, mousedownItem: null };
+          uiState.actions.setMode(
+            uiState.isRuntime
+              ? { ...cursor, type: 'RUNTIME CURSOR', ActionEvent: undefined }
+              : { ...cursor, type: 'CURSOR' }
+          );
+          return;
+        }
+
+        // Priority 3: Cancel in-progress connector
         if (uiState.mode.type === 'CONNECTOR') {
           const connectorMode = uiState.mode;
 
@@ -141,7 +154,8 @@ export const useInteractionManager = () => {
         uiState.actions.setDialog(DialogTypeEnum.HELP);
       }
 
-      // Tool hotkeys
+      // Tool hotkeys.
+      // 平移与选择是「工具」，按 ArcMap 交互只能从工具条选择，因此不分配快捷键。
       const hotkeyMapping = HOTKEY_PROFILES[uiState.hotkeyProfile];
       const key = e.key.toLowerCase();
 
@@ -153,32 +167,7 @@ export const useInteractionManager = () => {
         window.dispatchEvent(event);
       }
 
-      // Check if key matches any hotkey
-      if (hotkeyMapping.select && key === hotkeyMapping.select) {
-        e.preventDefault();
-        if (uiState.isRuntime) {
-          uiState.actions.setMode({
-            type: 'RUNTIME CURSOR',
-            showCursor: true,
-            ActionEvent: (window as any).__runtimeActionEvent,
-            mousedownItem: null
-          });
-        } else {
-          uiState.actions.setMode({
-            type: 'CURSOR',
-            showCursor: true,
-            mousedownItem: null
-          });
-        }
-      } else if (hotkeyMapping.pan && key === hotkeyMapping.pan && !uiState.isRuntime) {
-        // Disable pan shortcut in runtime mode
-        e.preventDefault();
-        uiState.actions.setMode({
-          type: 'PAN',
-          showCursor: false
-        });
-        uiState.actions.setItemControls(null);
-      } else if (hotkeyMapping.addItem && key === hotkeyMapping.addItem && !uiState.isRuntime) {
+      if (hotkeyMapping.addItem && key === hotkeyMapping.addItem && !uiState.isRuntime) {
         // Disable add item in runtime mode
         e.preventDefault();
         uiState.actions.setItemControls({
@@ -245,19 +234,14 @@ export const useInteractionManager = () => {
     return () => {
       return window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [undo, redo, canUndo, canRedo, uiState.hotkeyProfile, uiState.actions, createTextBox, uiState.mouse.position.tile, scene, uiState.itemControls, uiState.mode, uiState.connectorInteractionMode]);
+  }, [undo, redo, canUndo, canRedo, uiState.hotkeyProfile, uiState.actions, createTextBox, uiState.mouse.position.tile, scene, uiState.itemControls, uiState.mode, uiState.connectorInteractionMode, uiState.isRuntime]);
 
   const onMouseEvent = useCallback(
     (e: SlimMouseEvent) => {
       if (!rendererRef.current) return;
 
-      // Check pan handlers first
-      if (e.type === 'mousedown' && handlePanMouseDown(e)) {
-        return;
-      }
-      if (e.type === 'mouseup' && handlePanMouseUp(e)) {
-        return;
-      }
+      // 弹窗打开（含拖动弹窗）时不处理任何画布鼠标事件：底层地图不得移动
+      if (isCanvasInteractionLocked()) return;
 
       const mode = modes[uiState.mode.type];
       const modeFunction = getModeFunction(mode, e);
@@ -301,17 +285,15 @@ export const useInteractionManager = () => {
       modeFunction(baseState);
       reducerTypeRef.current = uiState.mode.type;
     },
-    [model, scene, uiState, rendererSize, handlePanMouseDown, handlePanMouseUp]
+    [model, scene, uiState, rendererSize]
   );
 
   const onContextMenu = useCallback(
     (e: SlimMouseEvent) => {
-      e.preventDefault();
+      // 弹窗打开时不弹画布右键菜单，也不拦截浏览器默认行为
+      if (isCanvasInteractionLocked()) return;
 
-      // Don't show context menu if right-click pan is enabled
-      if (uiState.panSettings.rightClickPan) {
-        return;
-      }
+      e.preventDefault();
 
       const itemAtTile = getItemAtTile({
         tile: uiState.mouse.position.tile,
@@ -331,7 +313,7 @@ export const useInteractionManager = () => {
         });
       }
     },
-    [uiState.mouse, scene, uiState.actions, uiState.panSettings]
+    [uiState.mouse, scene, uiState.actions]
   );
 
   useEffect(() => {
@@ -370,6 +352,9 @@ export const useInteractionManager = () => {
     };
 
     const onScroll = (e: WheelEvent) => {
+      // 弹窗打开时不缩放画布
+      if (isCanvasInteractionLocked()) return;
+
       const zoomToCursor = uiState.zoomSettings.zoomToCursor;
       const oldZoom = uiState.zoom;
 

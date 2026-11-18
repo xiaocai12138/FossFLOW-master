@@ -27,7 +27,8 @@ export interface ServiceState {
   metrics: ServiceMetrics;
 }
 
-export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+export const LOG_LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR'] as const;
+export type LogLevel = (typeof LOG_LEVELS)[number];
 
 export interface ServiceLog {
   id: string;

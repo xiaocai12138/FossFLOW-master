@@ -17,8 +17,15 @@ export default function RuntimePage() {
   const { i18n } = useTranslation('app');
   const [searchParams] = useSearchParams();
   const diagramId = searchParams.get(RUNTIME_SEARCH_PARAMS.diagramId);
+  const architectureId = searchParams.get(RUNTIME_SEARCH_PARAMS.architectureId);
 
-  const { sanitizedDiagram, iconPackManager } = useDiagramSource(diagramId);
+  const {
+    sanitizedDiagram,
+    iconPackManager,
+    architectureStatus,
+    architectureError,
+    reloadArchitecture
+  } = useDiagramSource(diagramId, architectureId);
 
   /**
    * `sanitizeDiagram` 每次都会生成新的 items 数组，若直接作为依赖会导致
@@ -65,6 +72,31 @@ export default function RuntimePage() {
 
   if (!iconPackManager.isInitialLoadComplete) {
     return <div className="fossflow-loading">正在加载图标资源…</div>;
+  }
+
+  /**
+   * 带 architectureId 时只认后台数据：加载中/失败都要显式呈现。
+   * 失败静默回退本地缓存会让人误以为「保存没生效」。
+   */
+  if (architectureId && architectureStatus === 'loading') {
+    return <div className="fossflow-loading">正在加载后台架构…</div>;
+  }
+
+  if (architectureId && architectureStatus === 'error') {
+    return (
+      <div className="runtime-load-error" role="alert">
+        <strong>后台架构加载失败</strong>
+        <p>{architectureError ?? '未知错误'}</p>
+        <div className="runtime-load-error-actions">
+          <button type="button" onClick={reloadArchitecture}>
+            重试
+          </button>
+          <button type="button" onClick={() => navigate(ROUTES.editor)}>
+            返回编辑器
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

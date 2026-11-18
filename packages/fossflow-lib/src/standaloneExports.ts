@@ -8,6 +8,13 @@ export type { IsoflowProps, InitialData } from 'src/types';
 export * from 'src/types/model';
 export * from 'src/types/runtime';
 
+// 画布交互锁：宿主应用的模态弹窗需要在挂载时显式锁定画布
+export {
+  lockCanvasInteractions,
+  unlockCanvasInteractions,
+  isCanvasInteractionLocked
+} from 'src/utils/canvasInteractionLock';
+
 // Export i18n locales
 export { default as enUS } from 'src/i18n/en-US';
 export { default as zhCN } from 'src/i18n/zh-CN';

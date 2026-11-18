@@ -1,0 +1,222 @@
+/* ==========================================================================
+   后台架构保存/加载对话框
+   类名 ba- 前缀，与 ti-（拓扑导入）/ rt-（运行视图）/ tp-（压测）区分。
+   配色沿用运行视图的浅色设计语言，并保留字面量兜底。
+   ========================================================================== */
+
+.ba-dialog {
+  --ba-bg-soft: #f8fafc;
+  --ba-border: var(--rt-border, rgba(15, 23, 42, 0.1));
+  --ba-border-soft: var(--rt-border-soft, rgba(15, 23, 42, 0.06));
+  --ba-text: var(--rt-text, #0f172a);
+  --ba-text-soft: var(--rt-text-soft, #475569);
+  --ba-muted: var(--rt-muted, #64748b);
+  --ba-accent: var(--rt-accent, #2563eb);
+  --ba-accent-soft: var(--rt-accent-soft, rgba(37, 99, 235, 0.1));
+  --ba-danger: var(--rt-danger, #dc2626);
+  --ba-radius: var(--rt-radius, 12px);
+  --ba-radius-sm: var(--rt-radius-sm, 8px);
+  --ba-mono: var(--rt-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  color: var(--ba-text);
+  font-size: 12px;
+}
+
+.ba-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ba-field > span {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ba-muted);
+}
+
+.ba-input {
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--ba-radius-sm);
+  border: 1px solid var(--ba-border);
+  background: #fff;
+  color: var(--ba-text);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.ba-input:focus {
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.ba-input:disabled {
+  background: var(--ba-bg-soft);
+  color: var(--ba-muted);
+}
+
+.ba-hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ba-muted);
+}
+
+.ba-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ba-btn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--ba-radius-sm);
+  border: 1px solid var(--ba-border);
+  background: #fff;
+  color: var(--ba-text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, opacity 140ms ease;
+}
+
+.ba-btn:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.32);
+  background: var(--ba-accent-soft);
+  color: var(--ba-accent);
+}
+
+.ba-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ba-btn-primary {
+  border-color: var(--ba-accent);
+  background: var(--ba-accent);
+  color: #fff;
+}
+
+.ba-btn-primary:hover:not(:disabled) {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.ba-btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ba-muted);
+}
+
+.ba-btn-ghost:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--ba-text);
+}
+
+.ba-error {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: var(--ba-radius);
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.ba-error strong {
+  font-size: 12px;
+  color: var(--ba-danger);
+}
+
+.ba-error p {
+  margin: 0;
+  font-family: var(--ba-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ba-text-soft);
+  word-break: break-all;
+}
+
+.ba-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ba-list-head > span {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ba-muted);
+}
+
+.ba-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  overflow-y: auto;
+  border-radius: var(--ba-radius-sm);
+  border: 1px solid var(--ba-border-soft);
+  background: #fff;
+  scrollbar-width: thin;
+}
+
+.ba-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--ba-border-soft);
+}
+
+.ba-list li:last-child {
+  border-bottom: none;
+}
+
+.ba-list-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ba-list-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ba-text);
+}
+
+.ba-list-meta {
+  font-size: 10.5px;
+  color: var(--ba-muted);
+}
+
+.ba-list-id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--ba-mono);
+  font-size: 10px;
+  color: rgba(100, 116, 139, 0.85);
+}

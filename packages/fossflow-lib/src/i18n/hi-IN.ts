@@ -15,6 +15,18 @@ const locale: LocaleProps = {
     settings: "सेटिंग्स",
     gitHub: "GitHub"
   },
+  toolMenu: {
+    select: 'चयन उपकरण',
+    lasso: 'लैसो चयन उपकरण',
+    freehandLasso: 'मुक्तहस्त लैसो उपकरण',
+    pan: 'दृश्य खिसकाने का उपकरण',
+    addItem: 'आइटम जोड़ने का उपकरण',
+    rectangle: 'आयत उपकरण',
+    connector: 'कनेक्टर उपकरण',
+    text: 'टेक्स्ट उपकरण',
+    canvasTools: 'कैनवास उपकरण',
+    fitToView: 'दृश्य में फ़िट करें'
+  },
   helpDialog: {
     title: "कीबोर्ड शॉर्टकट और सहायता",
     close: "बंद करें",

@@ -13,6 +13,7 @@ import { ExpandableLabel } from 'src/components/Label/ExpandableLabel';
 import { MarkdownEditor } from 'src/components/MarkdownEditor/MarkdownEditor';
 import { useUiStateStore } from 'src/stores/uiStateStore';
 import { RuntimeNodeBadge } from 'src/components/RuntimeOverlay/RuntimeNodeBadge';
+import { IsoTileArea } from 'src/components/IsoTileArea/IsoTileArea';
 
 interface Props {
   node: ViewItem;
@@ -33,6 +34,7 @@ export const Node = memo(({ node, order }: Props) => {
     ? runtimeOverlay.dimmedItemIds.includes(node.id)
     : false;
   const isRuntimeFocused = runtimeOverlay?.focusedItemId === node.id;
+  const traceStepNumbers = runtimeOverlay?.traceStepNumbersByItemId?.[node.id] ?? [];
 
   const position = useMemo(() => {
     return getTilePosition({
@@ -64,6 +66,17 @@ export const Node = memo(({ node, order }: Props) => {
         zIndex: order
       }}
     >
+      {isRuntimeFocused && (
+        <Box data-runtime-selected-node={node.id} aria-hidden="true" sx={{ pointerEvents: 'none' }}>
+          <IsoTileArea
+            from={node.tile}
+            to={node.tile}
+            fill="rgba(37, 99, 235, 0.24)"
+            stroke={{ color: '#2563eb', width: 2 }}
+            cornerRadius={8}
+          />
+        </Box>
+      )}
       <Box
         sx={{ position: 'absolute' }}
         style={{
@@ -82,6 +95,29 @@ export const Node = memo(({ node, order }: Props) => {
               labelHeight={node.labelHeight ?? DEFAULT_LABEL_HEIGHT}
             >
               <Stack spacing={1}>
+                {traceStepNumbers.length > 0 && (
+                  <Typography
+                    component="span"
+                    aria-label={`调用步骤 ${traceStepNumbers.join('、')}`}
+                    sx={{
+                      display: 'inline-block',
+                      width: 'fit-content',
+                      maxWidth: 250,
+                      px: 0.7,
+                      py: 0.2,
+                      borderRadius: 1,
+                      bgcolor: 'rgba(79, 70, 229, 0.12)',
+                      color: '#4338ca',
+                      fontFamily: 'monospace',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      lineHeight: 1.35,
+                      wordBreak: 'break-word'
+                    }}
+                  >
+                    {traceStepNumbers.map((step) => `#${step}`).join(' ')}
+                  </Typography>
+                )}
                 {(modelItem.name || (showHealth && runtimeStatus)) && (
                   <Stack
                     direction="row"
@@ -115,7 +151,7 @@ export const Node = memo(({ node, order }: Props) => {
             sx={{
               position: 'absolute',
               pointerEvents: 'none',
-              opacity: isRuntimeDimmed ? 0.35 : 1,
+              opacity: isRuntimeDimmed && !isRuntimeFocused ? 0.35 : 1,
               transition: 'opacity 220ms ease'
             }}
           >

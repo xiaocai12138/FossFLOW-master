@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { Box } from '@mui/material';
 import { theme } from 'src/styles/theme';
@@ -28,6 +28,7 @@ const App = ({
   iconPackManager,
   customMainMenu,
   isRuntime = false,
+  runtimeToolbarExtra,
   onRuntimeActionEvent,
   runtimeOverlay = null,
   language,
@@ -43,6 +44,15 @@ const App = ({
   });
 
   const { load } = initialDataManager;
+
+  /**
+   * 用 ref 持有回调，避免宿主每次渲染传新函数就触发一次
+   * onModelUpdated → 宿主 setState → 再渲染 的反馈循环。
+   */
+  const onModelUpdatedRef = useRef(onModelUpdated);
+  onModelUpdatedRef.current = onModelUpdated;
+  /** 上一次已上报的 model 内容签名；内容不变时不再回调宿主 */
+  const emittedModelSignatureRef = useRef<string | null>(null);
 
   useEffect(() => {
     load({ ...INITIAL_DATA, ...initialData });
@@ -60,10 +70,15 @@ const App = ({
   }, []);
 
   useEffect(() => {
-    if (!initialDataManager.isReady || !onModelUpdated) return;
+    if (!initialDataManager.isReady || !onModelUpdatedRef.current) return;
 
-    onModelUpdated(model);
-  }, [model, initialDataManager.isReady, onModelUpdated]);
+    const signature = JSON.stringify(model);
+
+    if (signature === emittedModelSignatureRef.current) return;
+
+    emittedModelSignatureRef.current = signature;
+    onModelUpdatedRef.current(model);
+  }, [model, initialDataManager.isReady]);
 
   useEffect(() => {
     uiStateActions.setEnableDebugTools(enableDebugTools);
@@ -123,7 +138,7 @@ const App = ({
         }}
       >
         <Renderer {...renderer} />
-        <UiOverlay />
+        <UiOverlay runtimeToolbarExtra={runtimeToolbarExtra} />
       </Box>
     </>
   );

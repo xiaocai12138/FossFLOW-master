@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useInitialDataManager } from '../useInitialDataManager';
 import { InitialData } from 'src/types';
+import { INITIAL_DATA } from 'src/config';
 import * as modelStoreModule from 'src/stores/modelStore';
 import * as uiStateStoreModule from 'src/stores/uiStateStore';
 import * as useViewModule from 'src/hooks/useView';
@@ -83,6 +84,30 @@ describe('useInitialDataManager - Orphaned Connector Handling', () => {
     // Setup mock model schema
     mockModelSchema = require('src/schemas/model').modelSchema;
     mockModelSchema.safeParse.mockReturnValue({ success: true });
+  });
+
+  it('fits the loaded view only after the renderer has a size', () => {
+    const { result, rerender } = renderHook(() => useInitialDataManager());
+    const items = [{ id: 'item1', tile: { x: 1, y: 1 } }];
+    const initialData: InitialData = {
+      ...INITIAL_DATA,
+      fitToView: true,
+      views: [{ id: 'view1', name: 'Test View', items, connectors: [], rectangles: [], textBoxes: [] }]
+    };
+
+    act(() => result.current.load(initialData));
+    expect(mockUiStateStore.actions.setZoom).not.toHaveBeenCalled();
+
+    const renderer = document.createElement('div');
+    jest.spyOn(renderer, 'getBoundingClientRect').mockReturnValue({
+      width: 800,
+      height: 600
+    } as DOMRect);
+    mockUiStateStore.rendererEl = renderer;
+    rerender();
+
+    expect(mockUiStateStore.actions.setZoom).toHaveBeenCalledTimes(1);
+    expect(mockUiStateStore.actions.setZoom.mock.calls[0][0]).toBeGreaterThan(0);
   });
 
   it('should filter out connectors with invalid item references during load', () => {

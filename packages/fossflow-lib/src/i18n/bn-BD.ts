@@ -15,6 +15,18 @@ const locale: LocaleProps = {
     settings: "সেটিংস",
     gitHub: "GitHub"
   },
+  toolMenu: {
+    select: 'নির্বাচন টুল',
+    lasso: 'ল্যাসো নির্বাচন টুল',
+    freehandLasso: 'মুক্তহস্ত ল্যাসো টুল',
+    pan: 'প্যান টুল',
+    addItem: 'আইটেম যোগ করার টুল',
+    rectangle: 'আয়তক্ষেত্র টুল',
+    connector: 'সংযোগকারী টুল',
+    text: 'টেক্সট টুল',
+    canvasTools: 'ক্যানভাস টুল',
+    fitToView: 'দৃশ্যে মানানসই করুন'
+  },
   helpDialog: {
     title: "কীবোর্ড শর্টকাট এবং সহায়তা",
     close: "বন্ধ করুন",

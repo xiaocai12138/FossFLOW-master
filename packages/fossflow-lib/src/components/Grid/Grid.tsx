@@ -43,6 +43,7 @@ export const Grid = () => {
 
   return (
     <Box
+      className="fossflow-grid"
       sx={{
         position: 'absolute',
         left: 0,

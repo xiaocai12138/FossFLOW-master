@@ -62,22 +62,34 @@ export const buildRuntimeOverlay = ({
       connectorReveal: {},
       reachedItemIds: [],
       dimmedItemIds: [],
+      traceStepNumbersByItemId: {},
       focusedItemId: selectedItemId ?? null,
       showHealth
     };
   }
 
-  const spanByItem = new Map(trace.spans.map((span) => [span.itemId, span]));
-  const orderedItems = trace.spans
+  const orderedSpans = trace.spans
     .slice()
-    .sort((a, b) => a.startMs - b.startMs)
-    .map((span) => span.itemId);
+    .sort((a, b) => a.startMs - b.startMs);
+  const spanByItem = new Map(orderedSpans.map((span) => [span.itemId, span]));
+  const orderedItems = orderedSpans.map((span) => span.itemId);
 
-  const visibleCount = Math.max(
-    1,
-    Math.ceil(orderedItems.length * ratio)
-  );
+  const visibleCount =
+    orderedItems.length === 0
+      ? 0
+      : Math.min(
+          orderedItems.length,
+          Math.max(0, Math.ceil(orderedItems.length * ratio))
+        );
   const reachedItemIds = orderedItems.slice(0, visibleCount);
+  const traceStepNumbersByItemId: Record<string, number[]> = {};
+
+  orderedSpans.slice(0, visibleCount).forEach((span, index) => {
+    const steps = traceStepNumbersByItemId[span.itemId] ?? [];
+
+    steps.push(index + 1);
+    traceStepNumbersByItemId[span.itemId] = steps;
+  });
 
   reachedItemIds.forEach((itemId) => {
     const span = spanByItem.get(itemId);
@@ -117,6 +129,7 @@ export const buildRuntimeOverlay = ({
     connectorReveal,
     reachedItemIds,
     dimmedItemIds,
+    traceStepNumbersByItemId,
     focusedItemId: selectedItemId ?? null,
     showHealth
   };

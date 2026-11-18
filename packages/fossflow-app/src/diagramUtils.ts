@@ -8,6 +8,7 @@ export interface DiagramData {
   colors: any[];
   items: any[];
   views: any[];
+  fitToView?: boolean;
   fitToScreen?: boolean;
 }
 
@@ -22,6 +23,7 @@ export function mergeDiagramData(base: DiagramData, update: Partial<DiagramData>
     colors: update.colors !== undefined ? update.colors : base.colors,
     items: update.items !== undefined ? update.items : base.items,
     views: update.views !== undefined ? update.views : base.views,
+    fitToView: update.fitToView !== undefined ? update.fitToView : base.fitToView,
     fitToScreen: update.fitToScreen !== undefined ? update.fitToScreen : base.fitToScreen
   };
 }
@@ -42,6 +44,7 @@ export function extractSavableData(fullData: DiagramData): DiagramData {
       return it;
     }),
     views: fullData.views || [],
+    fitToView: fullData.fitToView,
     fitToScreen: fullData.fitToScreen !== false
   };
 }

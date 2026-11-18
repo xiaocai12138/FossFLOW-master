@@ -12,9 +12,10 @@ export interface HotkeyMapping {
 }
 
 export const HOTKEY_PROFILES: Record<HotkeyProfile, HotkeyMapping> = {
+  // ArcMap 式交互：平移与选择是工具，只能从工具条选择，因此不分配快捷键。
   qwerty: {
-    select: 'q',
-    pan: 'w',
+    select: null,
+    pan: null,
     addItem: 'e',
     rectangle: 'r',
     connector: 't',
@@ -23,8 +24,8 @@ export const HOTKEY_PROFILES: Record<HotkeyProfile, HotkeyMapping> = {
     freehandLasso: 'f'
   },
   smnrct: {
-    select: 's',
-    pan: 'm',
+    select: null,
+    pan: null,
     addItem: 'n',
     rectangle: 'r',
     connector: 'c',

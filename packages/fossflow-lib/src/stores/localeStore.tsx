@@ -40,7 +40,7 @@ export function useTranslation(): {
 export function useTranslation<K extends keyof LocaleProps>(
   namespace: K
 ): {
-  t: (key: keyof LocaleProps[K]) => string;
+  t: (key: keyof NonNullable<LocaleProps[K]>) => string;
   };
 
 export function useTranslation<K extends keyof LocaleProps>(namespace?: K) {
@@ -48,9 +48,11 @@ export function useTranslation<K extends keyof LocaleProps>(namespace?: K) {
   
   if (namespace) {
     // Return scoped translation function for specific namespace
-    const namespaceData = locale[namespace];
-    const t = (key: keyof LocaleProps[K]): string => {
-      const value = namespaceData[key];
+    type Namespace = Partial<Record<keyof NonNullable<LocaleProps[K]>, unknown>>;
+    const namespaceData = locale[namespace] as Namespace | undefined;
+    const fallbackData = enUS[namespace] as Namespace | undefined;
+    const t = (key: keyof NonNullable<LocaleProps[K]>): string => {
+      const value = namespaceData?.[key] ?? fallbackData?.[key];
       return typeof value === 'string' ? value : String(key);
     };
     return { t };

@@ -30,6 +30,6 @@ export const Pan: ModeActions = {
   mouseup: ({ uiState }) => {
     if (uiState.mode.type !== 'PAN') return;
     setWindowCursor('grab');
-    // Note: Mode switching is now handled by usePanHandlers
+    // 平移是「工具」：松开鼠标后保持 PAN，直到用户从工具条切换其它工具
   }
 };

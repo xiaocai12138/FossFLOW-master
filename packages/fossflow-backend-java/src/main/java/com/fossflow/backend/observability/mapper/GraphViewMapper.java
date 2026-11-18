@@ -43,10 +43,14 @@ public class GraphViewMapper {
         view.put("from", edge.getFromTag());
         view.put("to", edge.getToTag());
         view.put("kind", edge.getKind().name());
-        view.put("stats", Map.of(
-                "callsPerMin", edge.getCallsPerMin(),
-                "errorRate", edge.getErrorRate(),
-                "p95Ms", edge.getP95Ms()));
+
+        // Map.of 不接受 null 值；边的聚合指标在刚建立时可能为空，
+        // 用 LinkedHashMap 才能容纳 null，避免 NPE 直接返回 500。
+        Map<String, Object> stats = new LinkedHashMap<>();
+        stats.put("callsPerMin", edge.getCallsPerMin());
+        stats.put("errorRate", edge.getErrorRate());
+        stats.put("p95Ms", edge.getP95Ms());
+        view.put("stats", stats);
 
         return view;
     }

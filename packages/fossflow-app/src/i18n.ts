@@ -9,7 +9,7 @@ i18n
   .use(initReactI18next)
   .init({
     // 默认简体中文；用户切换过语言时以 localStorage 中的选择为准。
-    lng: 'zh-CN',
+    lng: window.localStorage.getItem('i18nextLng') || 'zh-CN',
     fallbackLng: 'en-US',
     debug: process.env.NODE_ENV === 'development',
     interpolation: {

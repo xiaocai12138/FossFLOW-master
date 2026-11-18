@@ -4,6 +4,8 @@
    ========================================================================== */
 
 .rt-map {
+  --fossflow-runtime-control-inset: clamp(12px, 3.333vw, 40px);
+  --fossflow-runtime-title-offset: calc(var(--fossflow-runtime-control-inset) + 40px);
   --rt-panel: rgba(255, 255, 255, 0.94);
   --rt-border: rgba(15, 23, 42, 0.1);
   --rt-border-soft: rgba(15, 23, 42, 0.06);
@@ -21,8 +23,8 @@
   --rt-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   position: relative;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100dvh;
   overflow: hidden;
   background: #e9eef5;
   color: var(--rt-text);
@@ -51,6 +53,10 @@
   height: 100%;
 }
 
+.rt-map-canvas .fossflow-grid {
+  opacity: 0.52;
+}
+
 .rt-mono {
   font-family: var(--rt-mono);
 }
@@ -65,100 +71,69 @@
   background: var(--rt-border);
 }
 
-/* ==========================================================================
-   顶部 HUD
-   ========================================================================== */
-.rt-hud {
+/* Floating menu and map controls */
+.rt-main-menu {
   position: absolute;
+  top: var(--fossflow-runtime-control-inset);
+  left: var(--fossflow-runtime-control-inset);
   z-index: 20;
 }
 
-.rt-hud-top {
-  top: 14px;
-  left: 16px;
-  right: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 10px;
-  border-radius: var(--rt-radius);
-  border: 1px solid var(--rt-border);
-  background: var(--rt-panel);
-  backdrop-filter: blur(14px);
-  box-shadow: var(--rt-shadow);
-}
-
-.rt-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.rt-brand-mark {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #2563eb, #0ea5e9);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.32);
-}
-
-.rt-brand-mark svg {
-  width: 18px;
-  height: 18px;
-}
-
-.rt-brand-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.rt-brand-text strong {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.rt-brand-text span {
-  font-size: 11px;
+.rt-menu-trigger,
+.rt-legend-toggle {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--rt-muted);
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  cursor: pointer;
 }
 
-.rt-env {
-  flex: 0 0 auto;
-  margin-left: 4px;
-  padding: 2px 7px;
-  border-radius: 4px;
-  border: 1px solid rgba(37, 99, 235, 0.22);
-  background: rgba(37, 99, 235, 0.08);
-  color: #1d4ed8;
-  font-family: var(--rt-mono);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+.rt-menu-trigger,
+.rt-menu-items {
+  border: 1px solid var(--rt-border);
+  border-radius: var(--rt-radius-sm);
+  background: var(--rt-panel);
+  box-shadow: var(--rt-shadow-sm);
 }
 
-.rt-hud-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
+.rt-menu-trigger svg,
+.rt-legend-toggle svg {
+  width: 17px;
+  height: 17px;
+}
+
+.rt-menu-trigger:hover,
+.rt-legend-toggle:hover,
+.rt-legend-toggle[aria-expanded='true'] {
+  background: var(--rt-accent-soft);
+  color: var(--rt-accent);
+}
+
+.rt-menu-items {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  min-width: 148px;
+  padding: 6px;
+}
+
+.rt-menu-items[hidden],
+.rt-legend[hidden] {
+  display: none;
+}
+
+.rt-menu-divider {
+  align-self: center;
+  margin: 3px 6px;
+  border: 0;
+  border-top: 1px solid var(--rt-border);
 }
 
 .rt-hud-btn {
@@ -188,10 +163,6 @@
   color: var(--rt-text);
 }
 
-.rt-hud-btn.is-live {
-  color: #1d4ed8;
-}
-
 .rt-hud-btn.is-ok {
   color: #15803d;
   background: rgba(22, 163, 74, 0.08);
@@ -199,9 +170,9 @@
 }
 
 .rt-hud-btn.is-alert {
-  color: #b45309;
-  background: rgba(217, 119, 6, 0.1);
-  border-color: rgba(217, 119, 6, 0.22);
+  color: #a3222f;
+  background: #fff0ef;
+  border-color: #efc0c3;
 }
 
 .rt-hud-dot {
@@ -242,20 +213,9 @@
    ========================================================================== */
 .rt-legend {
   position: absolute;
-  right: 16px;
-  bottom: 54px;
+  top: calc(var(--fossflow-runtime-control-inset) + 48px);
+  right: var(--fossflow-runtime-control-inset);
   z-index: 22;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.rt-legend-toggle {
-  border: 1px solid var(--rt-border);
-  background: var(--rt-panel);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--rt-shadow-sm);
 }
 
 .rt-legend-card {
@@ -378,10 +338,18 @@
 /* ==========================================================================
    底部状态条
    ========================================================================== */
+.rt-map-health {
+  position: absolute;
+  left: var(--fossflow-runtime-control-inset);
+  bottom: calc(var(--fossflow-runtime-control-inset) + 4px);
+  z-index: 20;
+  box-shadow: var(--rt-shadow-sm);
+}
+
 .rt-statusbar {
   position: absolute;
-  right: 16px;
-  bottom: 14px;
+  right: var(--fossflow-runtime-control-inset);
+  bottom: calc(var(--fossflow-runtime-control-inset) + 5px);
   z-index: 20;
   display: flex;
   align-items: center;
@@ -402,12 +370,6 @@
 .rt-statusbar b {
   color: var(--rt-text);
   font-weight: 700;
-}
-
-.rt-statusbar-live {
-  color: #1d4ed8;
-  font-family: var(--rt-mono);
-  font-size: 10.5px;
 }
 
 /* ==========================================================================
@@ -570,29 +532,91 @@
   font-size: 11px;
 }
 
-/* 日志 */
+/* 调用链路弹窗 */
+.rtm-body.rt-trace-body {
+  overflow: hidden;
+  padding: 0;
+  gap: 0;
+}
+
+.rt-trace-query {
+  flex: 0 0 auto;
+  padding: 14px 16px 12px;
+}
+
+.rt-trace-body > .rt-alert,
+.rt-trace-body > .rt-empty {
+  margin: 0 16px 14px;
+}
+
+.rt-trace-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 16px;
+  padding-inline: 16px;
+  border-bottom: 1px solid var(--rt-border);
+}
+
+.rt-trace-tabs > button {
+  min-height: 36px;
+  padding: 6px 5px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--rt-text-soft);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rt-trace-tabs > button[aria-selected='true'] {
+  color: var(--rt-accent);
+  border-bottom-color: var(--rt-accent);
+}
+
+.rt-trace-pane {
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  height: min(55dvh, 540px);
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  scrollbar-gutter: stable;
+}
+
+.rt-trace-pane:focus-visible {
+  outline-offset: -2px;
+}
+
+.rt-trace-pane .rt-playback {
+  margin-bottom: 12px;
+}
+
+.rt-trace-logs {
+  padding-top: 0;
+}
+
+.rt-trace-logs .rt-log-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff;
+}
+
 .rt-log-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding: 12px 0;
 }
 
-.rt-log-head h3 {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--rt-text);
-}
-
-.rt-log-head h3 svg {
-  width: 13px;
-  height: 13px;
+.rt-log-count {
   color: var(--rt-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .rt-segmented {
@@ -626,75 +650,137 @@
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
 }
 
-.rt-logs {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.rt-log {
-  display: flex;
-  gap: 8px;
-  padding: 7px 9px;
+.rt-log-console {
+  margin: 0;
+  border: 1px solid var(--rt-border);
   border-radius: var(--rt-radius-sm);
-  border: 1px solid var(--rt-border-soft);
   background: #f8fafc;
+  padding: 12px;
+  font-family: var(--rt-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  cursor: text;
 }
 
-.rt-log-level {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 17px;
-  border-radius: 4px;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+.rt-log-console:focus-visible {
+  outline-offset: -2px;
 }
 
-.rt-log-level-debug {
-  background: rgba(100, 116, 139, 0.14);
-  color: #475569;
-}
-
-.rt-log-level-info {
-  background: rgba(14, 165, 233, 0.14);
-  color: #0369a1;
-}
-
-.rt-log-level-warn {
-  background: rgba(245, 158, 11, 0.18);
-  color: #b45309;
-}
-
-.rt-log-level-error {
-  background: rgba(239, 68, 68, 0.16);
-  color: #b91c1c;
-}
-
-.rt-log-body {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.rt-log-console [data-active='true'] {
+  background: #e8f1ff;
 }
 
 .rt-log-time {
-  font-family: var(--rt-mono);
-  font-size: 10px;
+  opacity: 0.88;
+}
+
+.rt-log-level {
+  display: inline-block;
+  min-width: 5ch;
+}
+
+.rt-log-source {
   font-weight: 600;
+}
+
+.rtm-panel.rt-settings-panel {
+  box-sizing: border-box;
+  aspect-ratio: 8 / 5;
+  max-width: min(calc(100vw - 48px), calc(160dvh - 76.8px));
+  max-height: calc(100dvh - 48px);
+}
+
+.rt-settings-panel .rtm-header {
+  padding: 16px 20px;
+}
+
+.rt-settings-panel .rtm-title strong {
+  font-size: 16px;
+}
+
+.rtm-body.rt-settings-body {
+  gap: 20px;
+  padding: 20px;
+}
+
+.rt-settings-section {
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--rt-border);
+  border-radius: var(--rt-radius-sm);
+}
+
+.rt-settings-section legend {
+  padding-inline: 4px;
+  color: var(--rt-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rt-refresh-form,
+.rt-refresh-interval {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.rt-refresh-interval {
+  color: var(--rt-text);
+  font-size: 13px;
+}
+
+.rt-refresh-interval input {
+  box-sizing: border-box;
+  width: 110px;
+  height: 34px;
+  padding-inline: 8px;
+  border: 1px solid var(--rt-border);
+  border-radius: 6px;
+  color: var(--rt-text);
+  font: inherit;
+}
+
+.rt-log-color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 8px;
+}
+
+.rt-log-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--rt-text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.rt-log-color input {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 28px;
+  padding: 2px;
+  border: 1px solid var(--rt-border);
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.rt-log-color code {
+  margin-inline-start: auto;
   color: var(--rt-muted);
 }
 
-.rt-log-body p {
-  margin: 0;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--rt-text);
-  word-break: break-word;
+.rt-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 
 /* ==========================================================================
@@ -1182,45 +1268,35 @@
    响应式
    ========================================================================== */
 @media (max-width: 1024px) {
-  .rt-env {
-    display: none;
-  }
-
-  .rt-brand-text span {
-    display: none;
-  }
-
   .rt-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
+@media (max-width: 900px) {
+  .rt-map {
+    --fossflow-runtime-title-offset: calc(var(--fossflow-runtime-control-inset) + 82px);
+  }
+}
+
 @media (max-width: 720px) {
-  .rt-hud-top {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px;
+  .rtm-panel.rt-settings-panel {
+    aspect-ratio: auto;
+    max-width: 100%;
+    max-height: calc(100dvh - 24px);
   }
 
-  .rt-hud-actions {
-    width: 100%;
-    overflow-x: auto;
-    padding-bottom: 2px;
-  }
-
-  .rt-hud-btn {
-    flex: 0 0 auto;
-  }
-
-  .rt-legend {
-    bottom: 52px;
-    right: 12px;
+  .rt-legend-toggle {
+    width: 32px;
   }
 
   .rt-statusbar {
-    left: 12px;
-    right: auto;
-    bottom: 12px;
+    gap: 5px;
+    padding-inline: 7px;
+  }
+
+  .rt-map-health {
+    padding-inline: 7px;
   }
 
   .rt-query {

@@ -15,6 +15,18 @@ const locale: LocaleProps = {
     settings: "Configuración",
     gitHub: "GitHub"
   },
+  toolMenu: {
+    select: 'Herramienta de selección',
+    lasso: 'Herramienta de lazo',
+    freehandLasso: 'Herramienta de lazo a mano alzada',
+    pan: 'Herramienta de desplazamiento',
+    addItem: 'Herramienta para añadir elementos',
+    rectangle: 'Herramienta de rectángulo',
+    connector: 'Herramienta de conexión',
+    text: 'Herramienta de texto',
+    canvasTools: 'Herramientas del lienzo',
+    fitToView: 'Ajustar a la vista'
+  },
   helpDialog: {
     title: "Atajos de teclado y ayuda",
     close: "Cerrar",

@@ -20,6 +20,7 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import { useUiStateStore } from 'src/stores/uiStateStore';
 import { DialogTypeEnum } from 'src/types/ui';
 import { useTranslation } from 'src/stores/localeStore';
+import { useCanvasInteractionLock } from 'src/hooks/useCanvasInteractionLock';
 
 interface ShortcutItem {
   action: string;
@@ -38,6 +39,8 @@ export const HelpDialog = () => {
   });
 
   const isOpen = dialog === DialogTypeEnum.HELP;
+
+  useCanvasInteractionLock(isOpen);
 
   const handleClose = () => {
     setDialog(null);

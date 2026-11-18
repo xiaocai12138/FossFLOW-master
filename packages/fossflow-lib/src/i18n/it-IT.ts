@@ -15,6 +15,18 @@ const locale: LocaleProps = {
     settings: "Impostazioni",
     gitHub: "GitHub"
   },
+  toolMenu: {
+    select: "Strumento di selezione",
+    lasso: "Strumento lazo",
+    freehandLasso: "Strumento lazo a mano libera",
+    pan: "Strumento di spostamento",
+    addItem: "Strumento per aggiungere elementi",
+    rectangle: "Strumento rettangolo",
+    connector: "Strumento di collegamento",
+    text: "Strumento testo",
+    canvasTools: "Strumenti della tela",
+    fitToView: "Adatta alla vista"
+  },
   helpDialog: {
     title: "Scorciatoie da tastiera e aiuto",
     close: "Chiudi",

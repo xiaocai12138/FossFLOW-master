@@ -15,6 +15,18 @@ const locale: LocaleProps = {
     settings: "设置",
     gitHub: "GitHub"
   },
+  toolMenu: {
+    select: '选择工具',
+    lasso: '套索选择工具',
+    freehandLasso: '自由套索工具',
+    pan: '平移工具',
+    addItem: '添加节点工具',
+    rectangle: '矩形工具',
+    connector: '连线工具',
+    text: '文本工具',
+    canvasTools: '画布工具',
+    fitToView: '适配画布'
+  },
   helpDialog: {
     title: "键盘快捷键和帮助",
     close: "关闭",

@@ -13,6 +13,8 @@ export interface RuntimeOverlay {
   connectorReveal: Record<string, number>;
   reachedItemIds: string[];
   dimmedItemIds: string[];
+  /** 按调用时间排序后的步骤号，按目标节点聚合，用于与宿主的链路表格对应。 */
+  traceStepNumbersByItemId?: Record<string, number[]>;
   focusedItemId?: string | null;
   /**
    * Whether the node name label should also show the health status. Driven by

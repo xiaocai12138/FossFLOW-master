@@ -1,0 +1,421 @@
+/* ==========================================================================
+   服务拓扑导入对话框
+   全部类名 ti- 前缀，避免与运行视图 rt- / 流量面板 tp- 冲突。
+
+   主题与 TrafficPanel 一致：浅色，优先继承 --rt-*，
+   并给出字面量兜底，保证脱离 .rt-map 单独渲染时配色仍然正确。
+   ========================================================================== */
+
+.ti-dialog {
+  --ti-panel: var(--rt-panel, rgba(255, 255, 255, 0.94));
+  --ti-bg-soft: #f8fafc;
+  --ti-border: var(--rt-border, rgba(15, 23, 42, 0.1));
+  --ti-border-soft: var(--rt-border-soft, rgba(15, 23, 42, 0.06));
+  --ti-text: var(--rt-text, #0f172a);
+  --ti-text-soft: var(--rt-text-soft, #475569);
+  --ti-muted: var(--rt-muted, #64748b);
+  --ti-accent: var(--rt-accent, #2563eb);
+  --ti-accent-soft: var(--rt-accent-soft, rgba(37, 99, 235, 0.1));
+  --ti-warn: var(--rt-warn, #d97706);
+  --ti-danger: var(--rt-danger, #dc2626);
+  --ti-radius: var(--rt-radius, 12px);
+  --ti-radius-sm: var(--rt-radius-sm, 8px);
+  --ti-mono: var(--rt-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  color: var(--ti-text);
+  font-size: 12px;
+}
+
+.ti-mono {
+  font-family: var(--ti-mono);
+}
+
+/* ------------------------------------------------------------- 表单 */
+
+.ti-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ti-span-2 {
+  grid-column: 1 / -1;
+}
+
+.ti-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ti-field > span {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ti-muted);
+}
+
+.ti-input {
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--ti-radius-sm);
+  border: 1px solid var(--ti-border);
+  background: #fff;
+  color: var(--ti-text);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.ti-input:focus {
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.ti-input:disabled {
+  background: var(--ti-bg-soft);
+  color: var(--ti-muted);
+}
+
+/* ------------------------------------------------------------- 快捷来源 */
+
+.ti-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: var(--ti-radius);
+  border: 1px solid var(--ti-border-soft);
+  background: var(--ti-bg-soft);
+}
+
+.ti-sources-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ti-muted);
+}
+
+.ti-source-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ti-chip {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ti-border);
+  background: #fff;
+  color: var(--ti-text-soft);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, opacity 140ms ease;
+}
+
+.ti-chip:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.32);
+  background: var(--ti-accent-soft);
+  color: var(--ti-accent);
+}
+
+.ti-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 来源健康检查失败：仍可点击，但标黄提示可能拿不到数据 */
+.ti-chip.is-stale {
+  border-color: rgba(217, 119, 6, 0.35);
+  color: var(--ti-warn);
+}
+
+/* ------------------------------------------------------------- 选项 */
+
+.ti-options {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.ti-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ti-text-soft);
+  cursor: pointer;
+}
+
+.ti-check input {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--ti-accent);
+  cursor: pointer;
+}
+
+.ti-check:has(input:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------- 按钮 */
+
+.ti-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ti-btn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--ti-radius-sm);
+  border: 1px solid var(--ti-border);
+  background: #fff;
+  color: var(--ti-text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, opacity 140ms ease;
+}
+
+.ti-btn:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.32);
+  background: var(--ti-accent-soft);
+  color: var(--ti-accent);
+}
+
+.ti-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ti-btn-primary {
+  border-color: var(--ti-accent);
+  background: var(--ti-accent);
+  color: #fff;
+}
+
+.ti-btn-primary:hover:not(:disabled) {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.ti-btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ti-muted);
+}
+
+.ti-btn-ghost:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--ti-text);
+}
+
+/* ------------------------------------------------------------- 提示 / 错误 */
+
+.ti-hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ti-muted);
+}
+
+.ti-error {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: var(--ti-radius);
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.ti-error strong {
+  font-size: 12px;
+  color: var(--ti-danger);
+}
+
+.ti-error p {
+  margin: 0;
+  font-family: var(--ti-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ti-text-soft);
+  word-break: break-all;
+}
+
+/* ------------------------------------------------------------- 预览 */
+
+.ti-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ti-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ti-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--ti-accent-soft);
+  color: var(--ti-text-soft);
+  font-size: 11px;
+}
+
+.ti-stat em {
+  font-family: var(--ti-mono);
+  font-style: normal;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ti-accent);
+}
+
+.ti-stat-source {
+  background: rgba(15, 23, 42, 0.05);
+  font-family: var(--ti-mono);
+  font-size: 10.5px;
+  color: var(--ti-muted);
+}
+
+.ti-warnings {
+  margin: 0;
+  padding: 8px 10px 8px 26px;
+  border-radius: var(--ti-radius-sm);
+  border: 1px solid rgba(217, 119, 6, 0.28);
+  background: rgba(217, 119, 6, 0.07);
+  color: var(--ti-text-soft);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.ti-warnings li::marker {
+  color: var(--ti-warn);
+}
+
+.ti-nodes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  max-height: 190px;
+  overflow-y: auto;
+  border-radius: var(--ti-radius-sm);
+  border: 1px solid var(--ti-border-soft);
+  background: #fff;
+  scrollbar-width: thin;
+}
+
+.ti-nodes::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ti-nodes::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: rgba(100, 116, 139, 0.4);
+  background-clip: content-box;
+}
+
+.ti-nodes li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--ti-border-soft);
+}
+
+.ti-nodes li:last-child {
+  border-bottom: none;
+}
+
+.ti-node-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ti-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ti-node-tag {
+  flex: 0 0 auto;
+  max-width: 58%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ti-muted);
+  font-size: 10.5px;
+}
+
+/* ------------------------------------------------------------- 空状态 */
+
+.ti-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 120px;
+  padding: 18px;
+  border-radius: var(--ti-radius);
+  border: 1px dashed var(--ti-border);
+  background: var(--ti-bg-soft);
+  text-align: center;
+}
+
+.ti-empty strong {
+  font-size: 12.5px;
+  color: var(--ti-text);
+}
+
+.ti-empty p {
+  margin: 0;
+  max-width: 320px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ti-muted);
+}
+
+/* ------------------------------------------------------------- 窄屏 */
+
+@media (max-width: 720px) {
+  .ti-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ti-span-2 {
+    grid-column: auto;
+  }
+
+  .ti-options {
+    gap: 10px;
+  }
+}

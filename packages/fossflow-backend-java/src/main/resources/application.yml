@@ -34,11 +34,61 @@ fossflow:
       p95-warn-ms: ${OBS_P95_WARN_MS:800}
       p95-critical-ms: ${OBS_P95_CRIT_MS:2000}
 
+    collectors:
+      # 默认关闭：真实采集器就绪后，mock 数据混入会掩盖真实故障
+      mock-enabled: ${OBS_MOCK_ENABLED:false}
+
+    # 拓扑与链路。默认指向容器网络内的 OAP 服务名
+    skywalking:
+      enabled: ${OBS_SKYWALKING_ENABLED:true}
+      url: ${OBS_SKYWALKING_URL:http://oap:12800}
+      token: ${OBS_SKYWALKING_TOKEN:}
+      timeout-ms: ${OBS_SKYWALKING_TIMEOUT_MS:5000}
+      # Duration 使用 OAP 所在时区，必须与部署的 OAP 一致
+      zone: ${OBS_SKYWALKING_ZONE:Asia/Shanghai}
+      window-minutes: ${OBS_SKYWALKING_WINDOW_MINUTES:15}
+      # 实例采集按服务逐个查询，限制上限避免大集群下同步过慢
+      instance-service-limit: ${OBS_SKYWALKING_INSTANCE_LIMIT:50}
+
+    # 系统指标。label 必须与 Prometheus 抓取配置里的标签名一致
+    prometheus:
+      enabled: ${OBS_PROMETHEUS_ENABLED:true}
+      url: ${OBS_PROM_URL:http://prometheus:9090}
+      label: ${OBS_PROM_LABEL:tag_id}
+      rate-window: ${OBS_PROM_RATE_WINDOW:5m}
+      timeout-ms: ${OBS_PROM_TIMEOUT_MS:4000}
+
+    # 日志
+    loki:
+      enabled: ${OBS_LOKI_ENABLED:true}
+      url: ${OBS_LOKI_URL:http://loki:3100}
+      timeout-ms: ${OBS_LOKI_TIMEOUT_MS:4000}
+      lookback-minutes: ${OBS_LOKI_LOOKBACK_MINUTES:60}
+      limit: ${OBS_LOKI_LIMIT:200}
+
+    # 服务注册目录。前端只认 /api/observability/registry/*，不认这里的实现名
+    registry:
+      default-source: ${OBS_REGISTRY_SOURCE:nacos}
+      nacos:
+        enabled: ${OBS_NACOS_ENABLED:true}
+        url: ${OBS_NACOS_URL:http://nacos:8848}
+        namespace: ${OBS_NACOS_NAMESPACE:public}
+        group: ${OBS_NACOS_GROUP:DEFAULT_GROUP}
+        timeout-ms: ${OBS_NACOS_TIMEOUT_MS:5000}
+        # 实例查询是按服务并发的，限流避免大集群瞬间打满注册中心
+        instance-concurrency: ${OBS_NACOS_INSTANCE_CONCURRENCY:5}
+        page-size: ${OBS_NACOS_PAGE_SIZE:500}
+
+  # 开发期默认放开跨域；生产请收窄为具体前端域名
+  cors:
+    allowed-origins: ${OBS_CORS_ORIGINS:*}
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        # prometheus 必须暴露，否则 Prometheus 里的 fossflow-backend 抓取目标会一直 down
+        include: health,info,prometheus
 
 logging:
   level:

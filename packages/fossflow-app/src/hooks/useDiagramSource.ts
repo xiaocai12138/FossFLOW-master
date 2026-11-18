@@ -3,6 +3,9 @@ import { DiagramData } from '../diagramUtils';
 import { SavedDiagram } from '../types/editor';
 import { useIconPackManager } from '../services/iconPackManagerV2';
 import { sanitizeDiagram } from '../services/diagramSanitizer';
+import { architectureStorage } from '../services/architectureStorage';
+
+export type ArchitectureLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 const LAST_OPENED_ID_KEY = 'fossflow-last-opened';
 const LAST_OPENED_DATA_KEY = 'fossflow-last-opened-data';
@@ -63,9 +66,16 @@ const readSavedDiagramById = (diagramId: string): DiagramData | null => {
 
 /**
  * 两个页面共用的图表数据来源。
- * 编辑页负责写入，运行页按 diagramId 或“最近打开”读取。
+ *
+ * 数据优先级：
+ * 1. 携带 `architectureId` 时只认后台最新架构 —— 本地缓存可能是旧版本，
+ *    加载失败必须显式报错，不能静默回退（否则会以为改的东西没生效）。
+ * 2. 否则按 diagramId / 最近打开的本地缓存恢复。
  */
-export const useDiagramSource = (diagramId?: string | null) => {
+export const useDiagramSource = (
+  diagramId?: string | null,
+  architectureId?: string | null
+) => {
   const iconPackManager = useIconPackManager();
 
   const [diagramData, setDiagramData] = useState<DiagramData>(() => {
@@ -74,7 +84,53 @@ export const useDiagramSource = (diagramId?: string | null) => {
     return fromSaved ?? readCachedDiagram();
   });
 
-  // 图标包加载完成后，把可用图标并入当前图表
+  const [serverDiagram, setServerDiagram] = useState<DiagramData | null>(null);
+  const [architectureStatus, setArchitectureStatus] =
+    useState<ArchitectureLoadStatus>('idle');
+  const [architectureError, setArchitectureError] = useState<string | null>(null);
+  const [architectureReloadKey, setArchitectureReloadKey] = useState(0);
+
+  const reloadArchitecture = useCallback(() => {
+    setArchitectureReloadKey((previous) => previous + 1);
+  }, []);
+
+  useEffect(() => {
+    if (!architectureId) {
+      setServerDiagram(null);
+      setArchitectureStatus('idle');
+      setArchitectureError(null);
+
+      return;
+    }
+
+    let cancelled = false;
+
+    setArchitectureStatus('loading');
+    setArchitectureError(null);
+
+    architectureStorage
+      .load(architectureId)
+      .then((record) => {
+        if (cancelled) return;
+
+        setServerDiagram(record.diagram);
+        setArchitectureStatus('ready');
+      })
+      .catch((error) => {
+        if (cancelled) return;
+
+        setArchitectureError(
+          error instanceof Error ? error.message : '加载后台架构失败'
+        );
+        setArchitectureStatus('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [architectureId, architectureReloadKey]);
+
+  // 图标包加载完成后，把可用图标并入本地图表（后台图在下方统一合并）
   useEffect(() => {
     const loadedIcons = iconPackManager.loadedIcons;
 
@@ -94,16 +150,19 @@ export const useDiagramSource = (diagramId?: string | null) => {
     });
   }, [iconPackManager.loadedIcons]);
 
+  const sourceDiagram =
+    architectureId && serverDiagram ? serverDiagram : architectureId ? emptyDiagram() : diagramData;
+
   /**
    * 校验并修复图元引用，避免运行视图因数据腐化而空白。
    */
   const sanitizedDiagram = useMemo<DiagramData>(() => {
     const withIcons = {
-      ...diagramData,
+      ...sourceDiagram,
       icons: [
-        ...(diagramData.icons ?? []),
+        ...(sourceDiagram.icons ?? []),
         ...iconPackManager.loadedIcons.filter(
-          (icon) => !(diagramData.icons ?? []).some((own) => own.id === icon.id)
+          (icon) => !(sourceDiagram.icons ?? []).some((own) => own.id === icon.id)
         )
       ]
     };
@@ -115,7 +174,7 @@ export const useDiagramSource = (diagramId?: string | null) => {
     }
 
     return data as DiagramData;
-  }, [diagramData, iconPackManager.loadedIcons]);
+  }, [sourceDiagram, iconPackManager.loadedIcons]);
 
   const persistLastOpened = useCallback((data: DiagramData, id?: string) => {
     try {
@@ -128,10 +187,13 @@ export const useDiagramSource = (diagramId?: string | null) => {
   }, []);
 
   return {
-    diagramData,
+    diagramData: sourceDiagram,
     setDiagramData,
     sanitizedDiagram,
     iconPackManager,
-    persistLastOpened
+    persistLastOpened,
+    architectureStatus,
+    architectureError,
+    reloadArchitecture
   };
 };

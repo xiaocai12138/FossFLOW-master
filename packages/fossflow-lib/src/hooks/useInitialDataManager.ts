@@ -1,5 +1,5 @@
-import { useCallback, useState, useRef } from 'react';
-import { InitialData, IconCollectionState } from 'src/types';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { InitialData, IconCollectionState, View } from 'src/types';
 import { INITIAL_DATA, INITIAL_SCENE_STATE } from 'src/config';
 import {
   getFitToViewParams,
@@ -17,6 +17,7 @@ import { modelSchema } from 'src/schemas/model';
 export const useInitialDataManager = () => {
   const [isReady, setIsReady] = useState(false);
   const prevInitialData = useRef<InitialData>();
+  const pendingFit = useRef<View>();
   const model = useModelStore((state) => {
     return state;
   });
@@ -30,6 +31,20 @@ export const useInitialDataManager = () => {
     return state.editorMode;
   });
   const { changeView } = useView();
+
+  const fitView = useCallback((view: View) => {
+    const size = rendererEl?.getBoundingClientRect();
+    if (!size?.width || !size.height) return false;
+
+    const { zoom, scroll } = getFitToViewParams(view, size);
+    uiStateActions.setScroll({ position: scroll, offset: CoordsUtils.zero() });
+    uiStateActions.setZoom(zoom);
+    return true;
+  }, [rendererEl, uiStateActions]);
+
+  useEffect(() => {
+    if (pendingFit.current && fitView(pendingFit.current)) pendingFit.current = undefined;
+  }, [fitView]);
 
   const load = useCallback(
     (_initialData: InitialData) => {
@@ -136,21 +151,7 @@ export const useInitialDataManager = () => {
 
       changeView(view.value.id, initialData);
 
-      if (initialData.fitToView) {
-        const rendererSize = rendererEl?.getBoundingClientRect();
-
-        const { zoom, scroll } = getFitToViewParams(view.value, {
-          width: rendererSize?.width ?? 0,
-          height: rendererSize?.height ?? 0
-        });
-
-        uiStateActions.setScroll({
-          position: scroll,
-          offset: CoordsUtils.zero()
-        });
-
-        uiStateActions.setZoom(zoom);
-      }
+      pendingFit.current = initialData.fitToView && !fitView(view.value) ? view.value : undefined;
 
       const categoriesState: IconCollectionState[] = categoriseIcons(
         initialData.icons
@@ -165,7 +166,7 @@ export const useInitialDataManager = () => {
 
       setIsReady(true);
     },
-    [changeView, model.actions, rendererEl, uiStateActions, editorMode]
+    [changeView, model.actions, fitView, uiStateActions, editorMode]
   );
 
   const clear = useCallback(() => {

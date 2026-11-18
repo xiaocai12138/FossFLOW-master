@@ -13,7 +13,6 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useUiStateStore } from 'src/stores/uiStateStore';
 import { HotkeySettings } from '../HotkeySettings/HotkeySettings';
-import { PanSettings } from '../PanSettings/PanSettings';
 import { ZoomSettings } from '../ZoomSettings/ZoomSettings';
 import { ConnectorSettings } from '../ConnectorSettings/ConnectorSettings';
 import { IconPackSettings } from '../IconPackSettings/IconPackSettings';
@@ -23,6 +22,7 @@ import {
   LanguageOption
 } from './LanguageSettings';
 import { useTranslation, useLocale } from 'src/stores/localeStore';
+import { useCanvasInteractionLock } from 'src/hooks/useCanvasInteractionLock';
 
 export interface SettingsDialogProps {
   iconPackManager?: {
@@ -61,6 +61,8 @@ export const SettingsDialog = ({
 
   const isOpen = dialog === 'SETTINGS';
 
+  useCanvasInteractionLock(isOpen);
+
   const handleClose = () => {
     setDialog(null);
   };
@@ -76,7 +78,6 @@ export const SettingsDialog = ({
       label: locale.settings.language?.title ?? 'Language'
     },
     { key: 'hotkeys', label: t('settings.hotkeys.title') },
-    { key: 'pan', label: t('settings.pan.title') },
     {
       key: 'zoom',
       label: locale.settings.zoom.title ?? 'Zoom'
@@ -132,7 +133,6 @@ export const SettingsDialog = ({
             />
           )}
           {activeKey === 'hotkeys' && <HotkeySettings />}
-          {activeKey === 'pan' && <PanSettings />}
           {activeKey === 'zoom' && <ZoomSettings />}
           {activeKey === 'connector' && <ConnectorSettings />}
           {activeKey === 'iconPacks' && iconPackManager && (

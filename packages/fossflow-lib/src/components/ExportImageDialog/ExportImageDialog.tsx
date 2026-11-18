@@ -29,6 +29,7 @@ import { ModelStore, Size, Coords } from 'src/types';
 import { useDiagramUtils } from 'src/hooks/useDiagramUtils';
 import { useUiStateStore } from 'src/stores/uiStateStore';
 import { Isoflow } from 'src/Isoflow';
+import { useCanvasInteractionLock } from 'src/hooks/useCanvasInteractionLock';
 import { Loader } from 'src/components/Loader/Loader';
 import { customVars } from 'src/styles/theme';
 import { ColorPicker } from 'src/components/ColorSelector/ColorPicker';
@@ -46,6 +47,9 @@ interface CropArea {
 }
 
 export const ExportImageDialog = ({ onClose, quality = 1.5 }: Props) => {
+  // 本组件只在弹窗打开时挂载，因此挂载即锁定画布交互
+  useCanvasInteractionLock();
+
   const containerRef = useRef<HTMLDivElement>();
   const cropCanvasRef = useRef<HTMLCanvasElement>(null);
   const isExporting = useRef<boolean>(false);

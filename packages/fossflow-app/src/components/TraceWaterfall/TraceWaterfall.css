@@ -1,0 +1,254 @@
+.tw-root {
+  --tw-gutter: 220px;
+  --tw-duration: 92px;
+  --tw-gap: 8px;
+  --tw-border: var(--rt-border-soft, rgba(15, 23, 42, 0.06));
+  --tw-text: var(--rt-text, #0f172a);
+  --tw-text-soft: var(--rt-text-soft, #475569);
+  --tw-muted: var(--rt-muted, #64748b);
+  --tw-mono: var(--rt-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  color: var(--tw-text);
+}
+
+.tw-empty {
+  padding: 26px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--tw-border);
+  background: #f9fafb;
+  color: var(--tw-muted);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- 时间轴 */
+
+.tw-axis {
+  display: grid;
+  grid-template-columns: var(--tw-gutter) minmax(0, 1fr) var(--tw-duration);
+  align-items: end;
+  gap: var(--tw-gap);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--tw-border);
+}
+
+.tw-axis-gutter {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tw-muted);
+  padding-left: 8px;
+}
+
+.tw-axis-track {
+  position: relative;
+  height: 16px;
+}
+
+.tw-axis-tick {
+  position: absolute;
+  bottom: 1px;
+  transform: translateX(-50%);
+  font-family: var(--tw-mono);
+  font-size: 10px;
+  color: var(--tw-muted);
+  white-space: nowrap;
+}
+
+.tw-axis-tick:first-child {
+  transform: translateX(0);
+}
+
+.tw-axis-tick:last-child {
+  transform: translateX(-100%);
+}
+
+.tw-axis-total {
+  font-family: var(--tw-mono);
+  font-size: 10.5px;
+  color: var(--tw-text-soft);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- 行 */
+
+.tw-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.tw-row {
+  display: grid;
+  grid-template-columns: var(--tw-gutter) minmax(0, 1fr) var(--tw-duration);
+  align-items: center;
+  gap: var(--tw-gap);
+  padding: 5px 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.tw-row:hover {
+  background: #f9fafb;
+  border-color: var(--tw-border);
+}
+
+.tw-row.is-active {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.28);
+}
+
+.tw-row:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 1px;
+}
+
+/* ---------------------------------------------------------------- 标签列 */
+
+.tw-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  padding-right: 4px;
+}
+
+.tw-service {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tw-text-soft);
+  text-align: left;
+}
+
+.tw-service:hover .tw-service-name {
+  text-decoration: underline;
+}
+
+.tw-sequence {
+  flex: 0 0 auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-family: var(--tw-mono);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.tw-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.tw-service-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tw-operation {
+  min-width: 0;
+  padding-left: 12px;
+  font-family: var(--tw-mono);
+  font-size: 10.5px;
+  color: var(--tw-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------------------------------------------------------------- 时间条 */
+
+.tw-track {
+  position: relative;
+  height: 16px;
+  min-width: 0;
+  border-radius: 4px;
+  background-color: #f8fafc;
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(15, 23, 42, 0.1) 0,
+    rgba(15, 23, 42, 0.1) 1px,
+    transparent 1px,
+    transparent 25%
+  );
+  overflow: hidden;
+}
+
+.tw-bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 3px;
+  opacity: 0.92;
+  transition: width 220ms ease, left 220ms ease;
+}
+
+.tw-row:hover .tw-bar {
+  opacity: 1;
+}
+
+.tw-row.is-active .tw-bar {
+  box-shadow: 0 0 0 1.5px rgba(37, 99, 235, 0.55);
+}
+
+/* ---------------------------------------------------------------- 耗时列 */
+
+.tw-duration {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  font-family: var(--tw-mono);
+  font-size: 10.5px;
+  color: var(--tw-text-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tw-duration em {
+  font-style: normal;
+  font-size: 9.5px;
+  color: var(--tw-muted);
+}
+
+/* ---------------------------------------------------------------- 异常态 */
+
+.tw-row.is-bad .tw-operation,
+.tw-row.is-bad .tw-duration {
+  font-weight: 700;
+  color: var(--rt-danger, #dc2626);
+}
+
+.tw-row.is-bad .tw-bar {
+  opacity: 1;
+  box-shadow: 0 0 0 1px rgba(185, 28, 28, 0.28);
+}

@@ -16,6 +16,18 @@
   user-select: none;
 }
 
+.rtm-backdrop.rtm-top-right {
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: calc(var(--fossflow-runtime-control-inset, 16px) + 52px)
+    var(--fossflow-runtime-control-inset, 16px) 12px;
+}
+
+.rtm-top-right .rtm-panel {
+  max-height: min(660px, calc(100dvh - var(--fossflow-runtime-control-inset, 16px) - 64px));
+  animation-name: rtm-fade;
+}
+
 .rtm-panel {
   display: flex;
   flex-direction: column;
@@ -45,6 +57,15 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes rtm-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

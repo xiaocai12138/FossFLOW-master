@@ -1,0 +1,344 @@
+/* ==========================================================================
+   外部系统入口面板
+   全部类名 ep- 前缀，与运行视图的 rt- / 流量面板的 tp- 互不污染。
+   浅色主题，直接对齐 TopologyRunView.css 的 rt- 变量，
+   内嵌在白色 DraggableModal 里不会出现突兀的深色块。
+   ========================================================================== */
+
+.ep-panel {
+  --ep-bg: #ffffff;
+  --ep-bg-soft: #f8fafc;
+  --ep-bg-hover: #f9fafb;
+  --ep-border: rgba(15, 23, 42, 0.1);
+  --ep-border-soft: rgba(15, 23, 42, 0.06);
+  --ep-text: #0f172a;
+  --ep-text-soft: #374151;
+  --ep-muted: #64748b;
+  --ep-accent: #2563eb;
+  --ep-accent-soft: rgba(37, 99, 235, 0.1);
+  --ep-ok: #15803d;
+  --ep-radius: 10px;
+  --ep-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: var(--ep-radius);
+  border: 1px solid var(--ep-border);
+  background: var(--ep-bg);
+  color: var(--ep-text);
+  font-size: 12px;
+}
+
+.ep-mono {
+  font-family: var(--ep-mono);
+}
+
+/* ------------------------------------------------------------- 顶部 */
+
+.ep-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ep-head-text {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+
+.ep-head-text strong {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--ep-text);
+}
+
+.ep-host {
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--ep-border);
+  background: #f1f5f9;
+  font-size: 10.5px;
+  color: var(--ep-muted);
+}
+
+.ep-note {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ep-muted);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------- 上下文行 */
+
+.ep-context {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ep-ctx-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--ep-border-soft);
+  background: var(--ep-bg-soft);
+}
+
+.ep-ctx-row.is-empty {
+  border-style: dashed;
+}
+
+.ep-ctx-label {
+  flex: 0 0 auto;
+  min-width: 46px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ep-muted);
+}
+
+.ep-ctx-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #1d4ed8;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.ep-ctx-none {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--ep-muted);
+}
+
+/* ------------------------------------------------------------- 卡片网格 */
+
+.ep-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ep-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--ep-border-soft);
+  background: var(--ep-bg-soft);
+  transition: border-color 140ms ease, background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.ep-card:hover {
+  border-color: var(--ep-border);
+  background: var(--ep-bg-hover);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.ep-card-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.ep-card-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.ep-card-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* 每个系统的品牌色在浅底上要压深一档才够对比度 */
+.ep-card-icon.is-skywalking {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+
+.ep-card-icon.is-grafana {
+  background: rgba(217, 119, 6, 0.12);
+  color: #b45309;
+}
+
+.ep-card-icon.is-prometheus {
+  background: rgba(234, 88, 12, 0.12);
+  color: #c2410c;
+}
+
+.ep-card-icon.is-nacos {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+}
+
+.ep-card-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ep-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ep-badge {
+  flex: 0 0 auto;
+  font-size: 10px;
+  color: var(--ep-muted);
+}
+
+.ep-card-purpose {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ep-text-soft);
+}
+
+.ep-card-url {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  color: var(--ep-accent);
+  text-decoration: none;
+}
+
+.ep-card-url:hover {
+  text-decoration: underline;
+}
+
+.ep-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 1px;
+}
+
+/* ------------------------------------------------------------- 按钮 */
+
+.ep-btn {
+  height: 27px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--ep-border);
+  background: #fff;
+  color: var(--ep-text-soft);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.ep-btn:hover {
+  background: var(--ep-bg-hover);
+  color: var(--ep-text);
+}
+
+.ep-btn:focus-visible {
+  outline: none;
+  border-color: var(--ep-accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+/* 与 rt-btn-primary 同一套蓝色渐变 */
+.ep-btn-primary {
+  border-color: transparent;
+  background: linear-gradient(135deg, #2563eb, #0284c7);
+  color: #fff;
+  box-shadow: 0 3px 9px rgba(37, 99, 235, 0.22);
+}
+
+.ep-btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #0369a1);
+  color: #fff;
+  box-shadow: 0 5px 13px rgba(37, 99, 235, 0.28);
+}
+
+.ep-btn-ghost {
+  background: #fff;
+  border-color: var(--ep-border);
+  color: var(--ep-text-soft);
+}
+
+.ep-btn-ghost:hover {
+  border-color: var(--ep-accent);
+  background: #fff;
+  color: var(--ep-accent);
+}
+
+.ep-btn-tiny {
+  flex: 0 0 auto;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 10.5px;
+}
+
+.ep-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(22, 163, 74, 0.24);
+  background: rgba(22, 163, 74, 0.1);
+  color: var(--ep-ok);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------- 脚注 */
+
+.ep-foot {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--ep-border);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--ep-muted);
+}
+
+/* ------------------------------------------------------------- 窄屏 */
+
+@media (max-width: 720px) {
+  .ep-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ep-note {
+    display: none;
+  }
+}

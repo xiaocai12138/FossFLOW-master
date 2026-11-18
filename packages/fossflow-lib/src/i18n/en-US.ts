@@ -15,6 +15,18 @@ const locale: LocaleProps = {
     settings: "Settings",
     gitHub: "GitHub"
   },
+  toolMenu: {
+    select: 'Select tool',
+    lasso: 'Lasso select tool',
+    freehandLasso: 'Freehand lasso tool',
+    pan: 'Pan tool',
+    addItem: 'Add item tool',
+    rectangle: 'Rectangle tool',
+    connector: 'Connector tool',
+    text: 'Text tool',
+    canvasTools: 'Canvas tools',
+    fitToView: 'Fit to view'
+  },
   helpDialog: {
     title: "Keyboard Shortcuts & Help",
     close: "Close",

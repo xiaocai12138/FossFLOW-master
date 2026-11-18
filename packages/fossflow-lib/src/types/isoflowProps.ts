@@ -24,6 +24,18 @@ export interface LocaleProps {
     settings: string;
     gitHub: string;
   };
+  toolMenu?: {
+    select: string;
+    lasso: string;
+    freehandLasso: string;
+    pan: string;
+    addItem: string;
+    rectangle: string;
+    connector: string;
+    text: string;
+    canvasTools?: string;
+    fitToView?: string;
+  };
   helpDialog: {
     title: string;
     close: string;
@@ -249,11 +261,27 @@ export interface CustomMainMenuAction {
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  section?: 'file';
   tone?: 'default' | 'primary' | 'success' | 'accent';
+}
+
+/**
+ * 二级菜单分组。
+ *
+ * 一级只显示 group.label，展开后显示组内 actions；用于把同一业务域的入口
+ * （例如「APM 架构」下的导入/保存/加载/运行视图）收在一起，同时保留
+ * 原生菜单项在原层级。
+ */
+export interface CustomMainMenuGroup {
+  id: string;
+  label: string;
+  actions: CustomMainMenuAction[];
 }
 
 export interface CustomMainMenuConfig {
   actions: CustomMainMenuAction[];
+  /** 可选的二级菜单分组，按数组顺序渲染在一级菜单中 */
+  groups?: CustomMainMenuGroup[];
   languageControl?: ReactNode;
   iconSourceControl?: ReactNode;
   status?: {
@@ -276,6 +304,7 @@ export interface IsoflowProps {
   iconPackManager?: IconPackManagerProps;
   customMainMenu?: CustomMainMenuConfig | null;
   isRuntime?: boolean;
+  runtimeToolbarExtra?: ReactNode;
   onRuntimeActionEvent?: (data: { item: any; tile: any }) => void;
   runtimeOverlay?: RuntimeOverlay | null;
   /** 当前界面语言代码，例如 zh-CN */

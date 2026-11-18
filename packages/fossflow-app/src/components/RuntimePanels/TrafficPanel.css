@@ -1,0 +1,410 @@
+/* ==========================================================================
+   业务流量模拟面板
+   全部类名 tp- 前缀，避免与运行视图的 rt- 冲突。
+
+   主题：与 TopologyRunView 一致的浅色设计语言。
+   --tp-* 默认直接映射到 --rt-*（定义在 .rt-map 上，内嵌时自然继承）；
+   同时给出与 TopologyRunView.css 相同的字面量作为兜底，
+   这样面板即使被渲染在 .rt-map 之外（单测 / 独立预览）也不会丢失配色。
+   ========================================================================== */
+
+.tp-panel {
+  --tp-panel: var(--rt-panel, rgba(255, 255, 255, 0.94));
+  --tp-bg-soft: #f8fafc;
+  --tp-bg-row: var(--rt-accent-soft, rgba(37, 99, 235, 0.1));
+  --tp-border: var(--rt-border, rgba(15, 23, 42, 0.1));
+  --tp-border-soft: var(--rt-border-soft, rgba(15, 23, 42, 0.06));
+  --tp-text: var(--rt-text, #0f172a);
+  --tp-text-soft: var(--rt-text-soft, #475569);
+  --tp-muted: var(--rt-muted, #64748b);
+  --tp-accent: var(--rt-accent, #2563eb);
+  --tp-ok: #16a34a;
+  --tp-bad: var(--rt-danger, #dc2626);
+  --tp-radius: var(--rt-radius, 12px);
+  --tp-radius-sm: var(--rt-radius-sm, 8px);
+  --tp-shadow-sm: var(--rt-shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.08), 0 6px 16px rgba(15, 23, 42, 0.06));
+  --tp-mono: var(--rt-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: var(--tp-radius);
+  border: 1px solid var(--tp-border);
+  background: var(--tp-panel);
+  color: var(--tp-text);
+  font-size: 12px;
+}
+
+/* ------------------------------------------------------------- 参数区 */
+
+.tp-params {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tp-field > span {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tp-muted);
+}
+
+.tp-field input {
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--tp-radius-sm);
+  border: 1px solid var(--tp-border);
+  background: #fff;
+  color: var(--tp-text);
+  font-family: var(--tp-mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.tp-field input:focus {
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* number 输入框的上下箭头在各浏览器里样式难看，统一去掉 */
+.tp-field input[type='number']::-webkit-outer-spin-button,
+.tp-field input[type='number']::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.tp-field input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ------------------------------------------------------------- 按钮区 */
+
+.tp-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tp-btn {
+  height: 30px;
+  padding: 0 11px;
+  border-radius: var(--tp-radius-sm);
+  border: 1px solid var(--tp-border);
+  background: #fff;
+  color: var(--tp-text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, opacity 140ms ease;
+}
+
+.tp-btn:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.32);
+  background: var(--rt-accent-soft, rgba(37, 99, 235, 0.1));
+  color: var(--tp-accent);
+}
+
+.tp-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tp-btn-primary {
+  border-color: var(--tp-accent);
+  background: var(--tp-accent);
+  color: #fff;
+}
+
+.tp-btn-primary:hover:not(:disabled) {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.tp-btn-danger {
+  border-color: rgba(220, 38, 38, 0.35);
+  background: rgba(220, 38, 38, 0.06);
+  color: var(--tp-bad);
+}
+
+.tp-btn-danger:hover:not(:disabled) {
+  border-color: rgba(220, 38, 38, 0.5);
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--tp-bad);
+}
+
+.tp-btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--tp-muted);
+}
+
+.tp-btn-ghost:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--tp-text);
+}
+
+.tp-summary {
+  margin-left: auto;
+  font-family: var(--tp-mono);
+  font-size: 10.5px;
+  color: var(--tp-muted);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------- 进度 */
+
+.tp-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tp-progress-track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.tp-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #0ea5e9);
+  transition: width 180ms ease;
+}
+
+.tp-progress-text {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--tp-mono);
+  font-size: 10.5px;
+  color: var(--tp-text-soft);
+}
+
+.tp-progress-text em {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--rt-accent-soft, rgba(37, 99, 235, 0.1));
+  color: #1d4ed8;
+  font-style: normal;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------- 空状态 */
+
+.tp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 148px;
+  padding: 20px;
+  border-radius: var(--tp-radius);
+  border: 1px dashed var(--tp-border);
+  background: var(--tp-bg-soft);
+  text-align: center;
+}
+
+.tp-empty strong {
+  font-size: 12.5px;
+  color: var(--tp-text);
+}
+
+.tp-empty p {
+  margin: 0;
+  max-width: 300px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--tp-muted);
+}
+
+/* ------------------------------------------------------------- 记录表 */
+
+.tp-table-wrap {
+  max-height: 260px;
+  overflow: auto;
+  border-radius: var(--tp-radius);
+  border: 1px solid var(--tp-border-soft);
+  background: #fff;
+  box-shadow: var(--tp-shadow-sm);
+  scrollbar-width: thin;
+}
+
+.tp-table-wrap::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.tp-table-wrap::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: rgba(100, 116, 139, 0.4);
+  background-clip: content-box;
+}
+
+.tp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+.tp-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--tp-border);
+  background: var(--tp-bg-soft);
+  color: var(--tp-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tp-mono {
+  font-family: var(--tp-mono);
+}
+
+.tp-table tbody td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--tp-border-soft);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.tp-table tbody tr {
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.tp-table tbody tr:hover {
+  background: var(--tp-bg-row);
+}
+
+.tp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 成功 / 失败：左侧色条 + 状态码着色，不整行铺色以免太花 */
+.tp-table tbody tr.is-ok td:first-child {
+  box-shadow: inset 2px 0 0 var(--tp-ok);
+}
+
+.tp-table tbody tr.is-bad td:first-child {
+  box-shadow: inset 2px 0 0 var(--tp-bad);
+}
+
+.tp-table tbody tr.is-ok .tp-status {
+  color: var(--tp-ok);
+  font-weight: 700;
+}
+
+.tp-table tbody tr.is-bad .tp-status {
+  color: var(--tp-bad);
+  font-weight: 700;
+}
+
+.tp-col-idx {
+  width: 34px;
+  color: var(--tp-muted);
+  text-align: right;
+}
+
+.tp-time {
+  color: var(--tp-text-soft);
+}
+
+.tp-result {
+  margin-left: 6px;
+  color: var(--tp-accent);
+  font-style: normal;
+}
+
+.tp-trace {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tp-trace-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tp-text-soft);
+}
+
+.tp-trace-id em {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(22, 163, 74, 0.12);
+  color: var(--tp-ok);
+  font-style: normal;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.tp-trace-none {
+  color: var(--tp-muted);
+}
+
+.tp-col-act {
+  width: 74px;
+  text-align: right;
+}
+
+.tp-link {
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  color: var(--tp-accent);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.tp-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------- 窄屏 */
+
+@media (max-width: 720px) {
+  .tp-params {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tp-summary {
+    margin-left: 0;
+    width: 100%;
+  }
+}

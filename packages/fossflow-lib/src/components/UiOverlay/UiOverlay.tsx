@@ -18,10 +18,8 @@ import { useModelStore } from 'src/stores/modelStore';
 import { ExportImageDialog } from '../ExportImageDialog/ExportImageDialog';
 import { HelpDialog } from '../HelpDialog/HelpDialog';
 import { SettingsDialog } from '../SettingsDialog/SettingsDialog';
-import { ConnectorHintTooltip } from '../ConnectorHintTooltip/ConnectorHintTooltip';
 import { ConnectorEmptySpaceTooltip } from '../ConnectorEmptySpaceTooltip/ConnectorEmptySpaceTooltip';
 import { ConnectorRerouteTooltip } from '../ConnectorRerouteTooltip/ConnectorRerouteTooltip';
-import { ImportHintTooltip } from '../ImportHintTooltip/ImportHintTooltip';
 import { LassoHintTooltip } from '../LassoHintTooltip/LassoHintTooltip';
 import { LazyLoadingWelcomeNotification } from '../LazyLoadingWelcomeNotification/LazyLoadingWelcomeNotification';
 
@@ -55,11 +53,12 @@ const getEditorModeMapping = (editorMode: keyof typeof EditorModeEnum) => {
   return availableUiFeatures;
 };
 
-export const UiOverlay = () => {
+export const UiOverlay = ({ runtimeToolbarExtra }: { runtimeToolbarExtra?: React.ReactNode }) => {
   const theme = useTheme();
   const contextMenuAnchorRef = useRef();
   const toolMenuRef = useRef<HTMLDivElement>(null);
   const { appPadding } = theme.customVars;
+  const runtimeInset = `var(--fossflow-runtime-control-inset, ${appPadding.x}px)`;
   const spacing = useCallback(
     (multiplier: number) => {
       return parseInt(theme.spacing(multiplier), 10);
@@ -80,6 +79,12 @@ export const UiOverlay = () => {
   });
   const dialog = useUiStateStore((state) => {
     return state.dialog;
+  });
+  const isMainMenuOpen = useUiStateStore((state) => {
+    return state.isMainMenuOpen;
+  });
+  const customMainMenu = useUiStateStore((state) => {
+    return state.customMainMenu;
   });
   const itemControls = useUiStateStore((state) => {
     return state.itemControls;
@@ -149,14 +154,15 @@ export const UiOverlay = () => {
           <Box
             sx={{
               position: 'absolute',
-              transformOrigin: 'bottom left'
+              transformOrigin: 'bottom left',
+              transform: isRuntime ? 'translateX(-100%)' : undefined
             }}
             style={{
-              top: rendererSize.height - appPadding.y * 2,
-              left: appPadding.x
+              top: isRuntime ? runtimeInset : rendererSize.height - appPadding.y * 2,
+              left: isRuntime ? `calc(${rendererSize.width}px - ${runtimeInset})` : appPadding.x
             }}
           >
-            <ZoomControls isRuntime={isRuntime} />
+            <ZoomControls isRuntime={isRuntime} runtimeToolbarExtra={runtimeToolbarExtra} />
           </Box>
         )}
 
@@ -185,8 +191,10 @@ export const UiOverlay = () => {
             }}
             style={{
               left: rendererSize.width / 2,
-              top: rendererSize.height - appPadding.y * 2,
-              width: rendererSize.width - 500,
+              top: isRuntime
+                ? `calc(${rendererSize.height}px - var(--fossflow-runtime-title-offset, 80px))`
+                : rendererSize.height - appPadding.y * 2,
+              width: isRuntime ? `calc(${rendererSize.width}px - 24px)` : rendererSize.width - 500,
               height: appPadding.y
             }}
           >
@@ -255,14 +263,15 @@ export const UiOverlay = () => {
       )}
 
       {/* Show hint tooltips only in editable mode */}
-      {editorMode === EditorModeEnum.EDITABLE && <ConnectorHintTooltip toolMenuRef={toolMenuRef} />}
       {editorMode === EditorModeEnum.EDITABLE && <ConnectorEmptySpaceTooltip />}
       {editorMode === EditorModeEnum.EDITABLE && <ConnectorRerouteTooltip />}
-      {editorMode === EditorModeEnum.EDITABLE && <ImportHintTooltip />}
       {editorMode === EditorModeEnum.EDITABLE && <LassoHintTooltip toolMenuRef={toolMenuRef} />}
 
-      {/* Show lazy loading welcome notification if icon pack manager is provided */}
-      {iconPackManager && <LazyLoadingWelcomeNotification />}
+      {/* 首次使用提示属于欢迎层：宿主使用自定义菜单（本靶场）或进入运行视图时不展示，
+          避免盖住「APM 架构」菜单与应用弹窗 */}
+      {iconPackManager && !customMainMenu && !isRuntime && !dialog && !isMainMenuOpen && (
+        <LazyLoadingWelcomeNotification />
+      )}
 
       <SceneLayer>
         <Box ref={contextMenuAnchorRef} />

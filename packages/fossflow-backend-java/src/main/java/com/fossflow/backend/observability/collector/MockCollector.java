@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.fossflow.backend.observability.model.EdgeKind;
@@ -15,10 +16,16 @@ import com.fossflow.backend.observability.model.NodeKind;
 import com.fossflow.backend.observability.model.TagIds;
 
 /**
- * Mock 采集器：在没有 SkyWalking / Prometheus 的环境中产出确定性数据，
- * 让前端先按真实契约对接。
+ * Mock 采集器：产出确定性假数据，行为与真实采集器完全一致。
+ *
+ * 默认关闭（mock-enabled=false）：真实采集器上线后，mock 数据一旦混入真实结果，
+ * 前端将无法区分「演示数据」与「故障」。
  */
 @Component
+@ConditionalOnProperty(
+        prefix = "fossflow.observability.collectors",
+        name = "mock-enabled",
+        havingValue = "true")
 public class MockCollector implements Collector {
 
     private static final String[] DEMO_SERVICES = {
